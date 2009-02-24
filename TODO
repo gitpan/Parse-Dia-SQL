@@ -1,0 +1,51 @@
+  $Id: TODO,v 1.2 2009/02/23 16:24:03 aff Exp $
+
+- Check inserts that don't separate statements with ';'
+
+- Check double 'not null' in table create.
+
+- Add options to parsediasql (identical to those of tedia2sql)
+
+- Only supported database so far is DB2. All others in experimental
+  state.
+  
+- Create output classes for each database (possibly subclassed further
+  for each storage engine the database supports):
+
+    Parse::Dia::SQL::Output::DB2
+    Parse::Dia::SQL::Output::Informix
+    Parse::Dia::SQL::Output::Ingres
+    Parse::Dia::SQL::Output::InnoDB
+    Parse::Dia::SQL::Output::InnoDB
+    Parse::Dia::SQL::Output::MSSQL
+    Parse::Dia::SQL::Output::MySQL::InnoDB
+    Parse::Dia::SQL::Output::MySQL::MyISAM
+    Parse::Dia::SQL::Output::Oracle
+    Parse::Dia::SQL::Output::Postgres
+    Parse::Dia::SQL::Output::SAS
+    Parse::Dia::SQL::Output::Sybase
+
+- For all classes:
+  - verify create table,view,index,constraint syntax
+  - verify drop table,view,index,constraint syntax
+
+- Parse::Dia::SQL::Output::MySQL 
+	- sub _get_create_table_sql must handle AUTO_INCREMENT
+
+- Download DDL's from http://tedia2sql.tigris.org/ and
+  ensure Parse::Dia::SQL produces roughly the same code.
+
+- Add a formatter to the table statements (e.g. Text::Table or pick up
+  the abandoned SQL::Tidy).
+
+- Test with larger dia files.
+
+- Optimize with Devel::DProf, and consider a faster XML parser.
+
+- Be consistent in subroutine names (e.g. Output.pm)
+  E.g. get_<dbobject>_<(create|drop)>_sql
+
+- Apply stricter Perl::Critic (current level 'stern', consider
+  'harsh').
+
+- Update pod in all modules.

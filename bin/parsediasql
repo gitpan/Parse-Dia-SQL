@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+
+# $Id: parsediasql,v 1.4 2009/02/23 16:01:21 aff Exp $
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Pod::Usage;
+
+use lib q{lib};
+use Parse::Dia::SQL;
+
+my $help = undef;
+my $file = undef;
+my $db   = undef;
+
+GetOptions(
+  "help|?" => \$help,
+  "file=s" => \$file,
+  "db=s"   => \$db,
+) or pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(qq{Missing argument 'file'}) if !$file;
+pod2usage(qq{Missing argument 'db'}) if !$db;
+
+my $dia = Parse::Dia::SQL->new(file => $file, db => $db);
+$dia->convert() or die('conversion failed');
+print $dia->get_sql();
+
+__END__
+
+=pod
+
+=head1 NAME
+
+  diasql - Command-line interface to Dia::SQL
+
+=head1 SYNOPSIS
+
+  diasql [OPTIONS] --file FILE --db DB
+
+=head1 OPTIONS
+
+  file -  filename of Dia file
+  db   -  Database type (e.g. 'db2')
+
+=head1 DESCRIPTION
+
+Dia is a diagram creation program for Linux, Unix and Windows released
+under the GPL license.
+
+diasql is a Command-line interface to Dia::SQL
+
+Dia::SQL converts Dia class diagrams into SQL. 
+
+=head1 TODO
+
+=head2 Add options that correspond to %param in Dia::SQL::new
+
+=head1 SEE ALSO
+
+  Dia::SQL
+
+=head1 AUTHOR
+
+Dia::SQL is based on I<tedia2sql> by Tim Ellis and others.  See the
+I<AUTHORS> file for details.
+
+Modified by Andreas Faafeng, C<< <aff at cpan.org> >> for release on
+CPAN.
+
+=cut
+
