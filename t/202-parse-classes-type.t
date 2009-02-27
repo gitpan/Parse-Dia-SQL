@@ -1,4 +1,4 @@
-#   $Id: 202-parse-classes-type.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 202-parse-classes-type.t,v 1.2 2009/02/26 13:49:07 aff Exp $
 
 use warnings;
 use strict;
@@ -12,7 +12,7 @@ plan tests => 47;
 
 use_ok ('Parse::Dia::SQL');
 
-my $diasql =  Parse::Dia::SQL->new( file => catfile(qw(t data TestERD.dia)), db => 'mysql' );
+my $diasql =  Parse::Dia::SQL->new( file => catfile(qw(t data TestERD.dia)), db => 'db2' );
 isa_ok($diasql, q{Parse::Dia::SQL}, q{Expect a Parse::Dia::SQL object});
 
 # TODO: Add test on return value - call wrapper

@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Const;
 
-# $Id: Const.pm,v 1.1 2009/02/23 07:36:17 aff Exp $
+# $Id: Const.pm,v 1.2 2009/02/26 13:40:02 aff Exp $
 
 =pod
 
@@ -86,7 +86,7 @@ sub new {
 
 =head2 get_rdbms
 
-Return list of databases.
+Return list of supported databases.
 
 =cut
 

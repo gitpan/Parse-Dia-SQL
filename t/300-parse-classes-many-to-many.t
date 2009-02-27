@@ -1,4 +1,4 @@
-#   $Id: 300-parse-classes-many-to-many.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 300-parse-classes-many-to-many.t,v 1.2 2009/02/26 13:49:07 aff Exp $
 
 # NOTE: This files has all the tests crammed together as opposed to
 # the others that are using TestERD.dia - consider doing it more
@@ -16,7 +16,7 @@ plan tests => 34;
 
 use_ok ('Parse::Dia::SQL');
 
-my $diasql =  Parse::Dia::SQL->new( file => catfile(qw(t data many_to_many.dia)), db => 'mysql' );
+my $diasql =  Parse::Dia::SQL->new( file => catfile(qw(t data many_to_many.dia)), db => 'db2' );
 isa_ok($diasql, q{Parse::Dia::SQL}, q{Expect a Parse::Dia::SQL object});
 
 # parse and convert document

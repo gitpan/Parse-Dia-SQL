@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Logger;
 
-# $Id: Logger.pm,v 1.1 2009/02/23 07:36:17 aff Exp $
+# $Id: Logger.pm,v 1.2 2009/02/26 13:45:15 aff Exp $
 
 =pod
 
@@ -35,6 +35,9 @@ use strict;
 
 use Log::Log4perl;
 use Log::Dispatch::FileRotate;
+
+use constant APPENDER_THRESHOLDS_ADJUST_LOGOFF =>  7;
+use constant APPENDER_THRESHOLDS_ADJUST_LOGON  => -7;
 
 =head2 new
 
@@ -108,6 +111,10 @@ sub _init_log {
   );
   
   Log::Log4perl::init( \$conf );
+
+  # Adjust call stack for caller class, see man Log::Log4perl
+  $Log::Log4perl::caller_depth = 1;
+    
   return 1;
 }
 
@@ -133,9 +140,11 @@ Decrease log level on all appenders.
 sub log_off {
   my $self = shift;
 
-  $self->_init_log() unless Log::Log4perl->initialized();
+  # Make sure it works also in case this is
+  # called as function before object is blessed.
+  _init_log() if ( !Log::Log4perl->initialized() );
 
-  Log::Log4perl->appender_thresholds_adjust(7);
+  Log::Log4perl->appender_thresholds_adjust(APPENDER_THRESHOLDS_ADJUST_LOGOFF);
 
   return 1;
 }
@@ -149,9 +158,11 @@ Increase log level on all appenders.
 sub log_on {
   my $self = shift;
 
-  $self->_init_log() unless Log::Log4perl->initialized();
+  # Make sure it works also in case this is
+  # called as function before object is blessed.
+  _init_log() if ( !Log::Log4perl->initialized() );
 
-  Log::Log4perl->appender_thresholds_adjust(-7);
+  Log::Log4perl->appender_thresholds_adjust(APPENDER_THRESHOLDS_ADJUST_LOGON);
 
   return 1;
 }

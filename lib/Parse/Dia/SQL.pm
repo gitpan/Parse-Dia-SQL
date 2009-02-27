@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.1 2009/02/23 07:36:16 aff Exp $
+# $Id: SQL.pm,v 1.9 2009/02/27 09:31:55 aff Exp $
 
 =pod
 
@@ -12,9 +12,13 @@ Parse::Dia::SQL - Convert Dia class diagrams into SQL.
 
     use Parse::Dia::SQL;
     my $dia = Parse::Dia::SQL->new(
-      files => [ 'diagram1.dia', 'diagram2.dia' ], db => 'db2' );
-    $dia->convert();
+      file => 't/data/TestERD.dia', 
+      db   => 'db2' 
+    );
     print $dia->get_sql();
+
+    # or command-line version
+    perl parsediasql --file t/data/TestERD.dia --db db2
 
 =head1 DESCRIPTION
 
@@ -28,6 +32,10 @@ internal datastructure.
 
 Parse::Dia::SQL::Output (or one of its sub classes) can take the
 datastructure and generate SQL statements it represents.
+
+=head1 MODELLING HOWTO
+
+See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 
 =head1 DATABASE SUPPORT NOTE
 
@@ -67,6 +75,8 @@ You can also look for information at:
 =over 4
 
 =item * Project home
+
+Documentation and public source code repository:
 
 L<http://tedia2sql.tigris.org/>
 
@@ -126,6 +136,7 @@ use Parse::Dia::SQL::Output;
 
 use Parse::Dia::SQL::Output::DB2;
 use Parse::Dia::SQL::Output::Ingres;	 
+use Parse::Dia::SQL::Output::Informix;	 
 use Parse::Dia::SQL::Output::MySQL::InnoDB;
 use Parse::Dia::SQL::Output::MySQL::MyISAM;
 use Parse::Dia::SQL::Output::MySQL;
@@ -134,14 +145,18 @@ use Parse::Dia::SQL::Output::Postgres;
 use Parse::Dia::SQL::Output::Sas;			 
 use Parse::Dia::SQL::Output::Sybase;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02'; 
+
+=head1 METHODS
 
 =head2 new
 
-The constructor.  Arguments:
+The constructor.  Mandatory arguments:
 
-  file  - .dia file to parse
-  db    - the target database type
+  file  - The .dia file to parse
+  db    - The target database type
+
+Dies if target database is unknown or unsupported.
 
 =cut
 
@@ -170,6 +185,7 @@ sub new {
     output         => undef,
 	index_options  => $param{index_options} || [],
 	diaversion  => $param{diaversion} || undef,
+    converted   => 0,  
   };
 
   bless($self, $class);
@@ -177,6 +193,14 @@ sub new {
   $self->_init_log();
   $self->_init_utils();
   $self->_init_const();
+
+  # Die unless database is supported
+  if ( !grep( /^$self->{db}$/, $self->{const}->get_rdbms() ) ) {
+    $self->{log}->logdie( qq{Unsupported database }
+        . $self->{db}
+        . q{. Valid options are }
+        . join( q{, },  $self->{const}->get_rdbms() ) );
+  }
 
   return $self;
 }
@@ -248,10 +272,10 @@ sub get_output_instance {
   # Add some args to param unless they are set by caller 
   %param =
     map { $param{$_} = $self->{$_} unless exists($param{$_}); $_ => $param{$_} }
-    qw(classes associations small_packages components files index_options);
+	  qw(classes associations small_packages components files index_options);
 
   if ($self->{db} eq q{db2}) {
-		return Parse::Dia::SQL::Output::DB2->new(%param);
+	return Parse::Dia::SQL::Output::DB2->new(%param);
   } elsif ($self->{db} eq q{mysql-myisam}) {
     return Parse::Dia::SQL::Output::MySQL::MyISAM->new(%param);
   } elsif ($self->{db} eq q{mysql-innodb}) {
@@ -260,13 +284,15 @@ sub get_output_instance {
     return Parse::Dia::SQL::Output::Sybase->new(%param);
   } elsif ($self->{db} eq q{ingres}) {
     return Parse::Dia::SQL::Output::Ingres->new(%param);
+  } elsif ($self->{db} eq q{informix}) {
+    return Parse::Dia::SQL::Output::Informix->new(%param);
   } elsif ($self->{db} eq q{oracle}) {
     return Parse::Dia::SQL::Output::Oracle->new(%param);
   } elsif ($self->{db} eq q{postgres}) {
     return Parse::Dia::SQL::Output::Postgres->new(%param);
   } elsif ($self->{db} eq q{sas}) {
     return Parse::Dia::SQL::Output::Sas->new(%param);
-	}
+  }
 
   $self->{log}->logdie(qq{Failed to get instance for } . $self->{db});
 }
@@ -276,10 +302,19 @@ sub get_output_instance {
 
 Parse the .dia file and create inner representation.
 
+Returns true on success.
+
+Returns undefined if called more than once on the same object.
+
 =cut
 
 sub convert {
   my $self = shift;
+
+  if ($self->{converted}) {
+	$self->{log}->info("Repeated conversion attempt discarded");
+	return;
+  }
 
   $self->_parse_doms();
   $self->_get_nodelists();
@@ -292,18 +327,21 @@ sub convert {
   $self->{associations}   = $self->get_associations_ref();
   $self->{components}     = $self->get_components_ref();
 
+  $self->{converted} = 1; # flag that we have parsed the file(s)
   return 1;
 }
 
 =head2 get_sql
 
-Return sql for given db
+Return sql for given db.  Calls underlying methods that performs
+parsing and sql generation.
 
 =cut
 
 sub get_sql {
   my $self   = shift;
   my $sqlstr = q{};
+  $self->convert() or $self->{log}->logdie("failed to convert");
   my $output = $self->get_output_instance();
   return $output->get_sql();
 }
@@ -404,6 +442,8 @@ sub _parse_smallpackages {
   my $self   = shift;
   my @retarr = ();      # array of hashrefs to return
 
+  $self->{log}->debug("_parse_smallpackages is called");
+
   if ( !$self->{nodelists} ) {
     $self->{log}->warn("nodelists are empty");
     return;
@@ -429,6 +469,7 @@ sub _parse_smallpackages {
           $self->{log}->debug("call generateSmallPackageSQL");
           my $href =
             $self->_parse_smallpackage( $nodelist->item($i), $nodeAttrId );
+
           $self->{log}->debug( "_parse_smallpackage returned " . Dumper($href) );
           push @{$self->{small_packages}}, $href;
         }
@@ -484,8 +525,7 @@ sub _parse_smallpackage {
 
 =head2 get_classes_ref
 
-TODO: Should be renamed to 'get_classes' once the real 'get_classes'
-is renamed 'parse_classes', see below.
+Return hashref with parsed classes.
 
 =cut
 
@@ -862,57 +902,9 @@ sub _parse_class {
   return $classLookup;
 }
 
-=head2 generate_small_package_sql
-
-Returns string with sql statements for small packages (pre/post/etc).
-
-Since this information is already explicit SQL, there is not a
-distinction between parsing and printing.
-
-=cut
-
-sub generate_small_package_sql {
-  my $self = shift;
-  my $sql  = q{};
-
-  if ( !defined( $self->{db} ) ) {
-    $self->{log}->error(qq{missing value for db!});
-    return;
-  }
-
-  my $statements = {};
-
-  #$self->{log}->debug(ref($self->{small_packages}));
-  foreach my $hashref ( @{ $self->{small_packages} } ) {
-    $self->{log}->debug( Dumper($hashref) );
-
-    # TODO: Make sure only given database sql is used
-    foreach my $key ( keys %$hashref ) {
-      $key =~ /^(.*):(.*)$/;
-      my ( $databases, $action ) = ( $1, $2 );
-      $self->{log}
-        ->debug( qq{$key => $databases & $action, db=} . $self->{db} );
-
-      # Use statements for given database only
-      if ( $key =~ m/$self->{db}/ ) {
-        push @{ $statements->{$action} }, $hashref->{$key};
-      }
-    }
-  }
-
-  # Make sure pre/post/etc comes in correct order
-  foreach my $act ($self->{const}->get_small_pack_gen_seq()) {
-    if ( exists( $statements->{$act} ) ) {
-      $sql .= join( "\n", @{ $statements->{$act} } );
-    }
-  }
-
-  return $sql;
-}
-
 =head2 get_associations_ref
 
-TODO: Rename this to get_associations?
+Return hashref with parsed associations.
 
 =cut
 
@@ -1268,9 +1260,8 @@ sub generate_many_to_many_association {
 
 =head2 gen_table_view_sql
 
-Generate Table or View SQL based on an object given.
-
-TODO : Rename to save_class 
+Create datastructure that represents gevein Table or View SQL and
+store in classes reference.
 
 =cut 
 
@@ -1303,7 +1294,8 @@ sub gen_table_view_sql {
 
 =head2 add_centre_cols
 
-Add column descriptors for a centre (join) table to an array of descriptors passed in
+Add column descriptors for a centre (join) table to an array of
+descriptors passed.
 
 =cut 
 

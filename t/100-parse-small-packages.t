@@ -1,4 +1,4 @@
-#   $Id: 100-parse-small-packages.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 100-parse-small-packages.t,v 1.2 2009/02/26 13:46:44 aff Exp $
 
 use warnings;
 use strict;
@@ -12,7 +12,7 @@ plan tests => 7;
 
 use_ok ('Parse::Dia::SQL');
 
-my $diasql =  Parse::Dia::SQL->new( files => [catfile(qw(t data TestERD.dia))], db => 'mysql' );
+my $diasql =  Parse::Dia::SQL->new( files => [catfile(qw(t data TestERD.dia))], db => 'db2' );
 isa_ok($diasql, q{Parse::Dia::SQL}, q{Expect a Parse::Dia::SQL object});
 
 # Parse and convert

@@ -1,13 +1,11 @@
-  $Id: TODO,v 1.2 2009/02/23 16:24:03 aff Exp $
+  $Id: TODO,v 1.4 2009/02/26 20:00:28 aff Exp $
 
-- Check inserts that don't separate statements with ';'
-
-- Check double 'not null' in table create.
+- Make sure pre and post statement end up at the right place.
 
 - Add options to parsediasql (identical to those of tedia2sql)
 
-- Only supported database so far is DB2. All others in experimental
-  state.
+- Only supported databases so far are DB2 and MySQL-MyISAM. All others
+  in experimental state.
   
 - Create output classes for each database (possibly subclassed further
   for each storage engine the database supports):

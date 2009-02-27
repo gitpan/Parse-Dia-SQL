@@ -10,6 +10,7 @@ lib/Parse/Dia/SQL/Const.pm
 lib/Parse/Dia/SQL/Logger.pm
 lib/Parse/Dia/SQL/Output.pm
 lib/Parse/Dia/SQL/Output/DB2.pm
+lib/Parse/Dia/SQL/Output/Informix.pm
 lib/Parse/Dia/SQL/Output/Ingres.pm
 lib/Parse/Dia/SQL/Output/MySQL.pm
 lib/Parse/Dia/SQL/Output/MySQL/InnoDB.pm
@@ -22,7 +23,6 @@ lib/Parse/Dia/SQL/Utils.pm
 t/000-load.t
 t/001-new.t
 t/100-parse-small-packages.t
-t/101-generate-small-package-sql.t
 t/201-parse-classes.t
 t/202-parse-classes-type.t
 t/203-parse-classes-attlist.t
@@ -37,6 +37,7 @@ t/600-output-load.t
 t/610-output-getinstance.t
 t/611-output-format-columns.t
 t/620-output-get-schema-create.t
+t/620-output-get-schema-create-col-comment.t
 t/621-output-get-create-table-sql.t
 t/622-output-get-create-view-sql.t
 t/623-output-get-view-create.t
@@ -74,6 +75,8 @@ t/904-kwalitee.t
 t/905-strict.t
 t/906-cover.t
 t/907-test-explicit-plan.t
+t/data/db2.pre.dupe.dia
 t/data/TestERD.dia
 t/data/many_to_many.dia
+t/data/table.col.comment.dia
 META.yml                                 Module meta-data (added by MakeMaker)

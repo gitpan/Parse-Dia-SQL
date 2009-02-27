@@ -1,4 +1,4 @@
-#   $Id: 680-output-db2-create-pk-string.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 680-output-db2-create-pk-string.t,v 1.2 2009/02/26 19:58:02 aff Exp $
 
 use warnings;
 use strict;
@@ -9,7 +9,7 @@ use Test::Exception;
 use File::Spec::Functions;
 use lib catdir qw ( blib lib );
 
-plan tests => 22;
+plan tests => 23;
 
 use lib q{lib};
 use_ok ('Parse::Dia::SQL');
@@ -34,6 +34,9 @@ isa_ok($output, 'Parse::Dia::SQL::Output::DB2')
   or diag(Dumper($output));
 
 can_ok($output, '_create_pk_string');
+
+# Should return undefined when pk list is empty or undefined
+ok(!defined($output->_create_pk_string(q{shorttable}, ())), q{Expect undef on empty list});
 
 # Check tablename of various length - the pk should be 18 chars or less (DB2)
 is($output->_create_pk_string(q{shorttable}, qw(one two three)), q{constraint pk_shorttable primary key (one,two,three)});

@@ -1,4 +1,4 @@
-#   $Id: 621-output-get-create-table-sql.t,v 1.2 2009/02/23 14:12:34 aff Exp $
+#   $Id: 621-output-get-create-table-sql.t,v 1.3 2009/02/27 08:35:31 aff Exp $
 
 use warnings;
 use strict;
@@ -110,15 +110,15 @@ my $create_table2 = $output->_get_create_table_sql($table2);
 
 like($create_table2, qr|.*
 create \s+ table \s+ node \s* \(
- \s* id \s+ bigint \s+ not \s+ null \s+ ,
- \s+ host \s+ varchar \s* \( \s* 20 \s* \) \s*  \s+ not \s+ null \s+ ,
- \s+ time \s+ timestamp \s+ not \s+ null \s+ ,
- \s+ level \s+ integer \s+ default \s+ 0 \s+ ,
- \s+ gui \s+ integer \s+ default \s+ 0 \s+ ,
- \s+ rate \s+ timestamp \s+ not \s+ null \s+ ,
- \s+ nrecv \s+ integer \s+ default \s+ 0 \s+ ,
- \s+ nsent \s+ integer \s+ default \s+ 0 \s+ ,
- \s+ status \s+ varchar \s* \( \s* 20 \s* \) \s*  \s+ ,
+ \s* id \s+ bigint \s+ not \s+ null \s* ,
+ \s+ host \s+ varchar \s* \( \s* 20 \s* \) \s*  \s+ not \s+ null \s* ,
+ \s+ time \s+ timestamp \s+ not \s+ null \s* ,
+ \s+ level \s+ integer \s+ default \s+ 0 \s* ,
+ \s+ gui \s+ integer \s+ default \s+ 0 \s* ,
+ \s+ rate \s+ timestamp \s+ not \s+ null \s* ,
+ \s+ nrecv \s+ integer \s+ default \s+ 0 \s* ,
+ \s+ nsent \s+ integer \s+ default \s+ 0 \s* ,
+ \s+ status \s+ varchar \s* \( \s* 20 \s* \) \s*  \s* ,
  \s+ constraint \s+ pk_node \s+ primary \s+ key \s+  \s* \( \s* host \s* \) \s* 
 \) \s* (;)?
 .*|six, q{Check syntax for column both pk and marked 'not null':});

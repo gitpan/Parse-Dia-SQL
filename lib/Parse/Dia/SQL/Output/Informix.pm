@@ -1,12 +1,12 @@
-package Parse::Dia::SQL::Output::Sas;
+package Parse::Dia::SQL::Output::Informix;
 
-# $Id: Sas.pm,v 1.2 2009/02/24 09:58:24 aff Exp $
+# $Id: Informix.pm,v 1.1 2009/02/24 09:54:55 aff Exp $
 
 =pod
 
 =head1 NAME 
 
-Sas.pm - Create SQL for Sas.
+Informix.pm - Create SQL for Informix.
 
 =head1 SEE ALSO
 
@@ -36,16 +36,15 @@ sub new {
   my ( $class, %param ) = @_;
   my $self = {};
 
-  # Set defaults for sas
-  $param{db} = q{sas}; 
-  $param{object_name_max_length} = $param{object_name_max_length} || 32;
+  # Set defaults for informix
+  $param{db} = q{informix}; 
+  $param{object_name_max_length} = $param{object_name_max_length} || 30;
 
   $self = $class->SUPER::new(%param);
   bless( $self, $class );
 
   return $self;
 }
-
 
 1;
 

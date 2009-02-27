@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.3 2009/02/24 05:43:39 aff Exp $
+# $Id: Output.pm,v 1.10 2009/02/27 08:57:26 aff Exp $
 
 =pod
 
@@ -70,11 +70,11 @@ sub new {
     sql_comment      => $param{sql_comment}      || "-- ",
 
     # sql options
-    index_options => $param{index_options} || [],
+    index_options => $param{index_options}       || [],
     object_name_max_length => $param{object_name_max_length}
       || undef,
 
-		# parsed datastructures
+    # parsed datastructures
     associations   => $param{associations}   || [],    # foreign keys, indices
     classes        => $param{classes}        || [],    # tables and views
     components     => $param{components}     || [],    # insert statements
@@ -85,8 +85,7 @@ sub new {
     const => undef,
     utils => undef,
   };
-
-  bless($self, $class);
+  bless( $self, $class );
 
   $self->_init_log();
   $self->_init_const();
@@ -94,6 +93,7 @@ sub new {
 
   return $self;
 }
+
 
 
 =head2 _init_log
@@ -158,7 +158,7 @@ sub _get_comment {
     . $self->{db}
     . $self->{newline}
     . $self->{sql_comment}
-    . qq{SQL::Dia version: }
+    . qq{Parse::SQL::Dia version: }
     . $Parse::Dia::SQL::VERSION
     . $self->{newline}
     . $self->{sql_comment}
@@ -181,6 +181,7 @@ Return all sql
 sub get_sql {
   my $self = shift;
 
+  # tedia2sql
   #   -- Generated SQL Constraints Drop statements
   #   -- Generated Permissions Drops
   #   -- Generated SQL View Drop Statements
@@ -191,26 +192,57 @@ sub get_sql {
   #   -- Generated SQL Insert statements
   #   -- Generated SQL Constraints
 
+  $self->{log}->info(q{TODO: Make sure statement sequence is correct}) 
+    if $self->{log}->is_info;
+
   ## No critic (NoWarnings)
-	no warnings q{uninitialized};
+  no warnings q{uninitialized};
   return
-	  $self->_get_comment()
+       "-- comments " 
+    . $self->{newline}
+	. $self->_get_comment()
+    . $self->{newline}
+    .  "-- get_constraints_drop " 
     . $self->{newline}
     . $self->get_constraints_drop()
     . $self->{newline}
+    .  "-- get_permissions_drop " 
+    . $self->{newline}
     . $self->get_permissions_drop()
+    . $self->{newline}
+    .  "--  get_view_drop" 
     . $self->{newline}
     . $self->get_view_drop()
     . $self->{newline}
+    .  "--  get_schema_drop" 
+    . $self->{newline}
     . $self->get_schema_drop()
+    . $self->{newline}
+    .  "-- get_smallpackage_pre_sql " 
+    . $self->{newline}
+    . $self->get_smallpackage_pre_sql()
+    . $self->{newline}
+    .  "--  get_schema_create" 
     . $self->{newline}
     . $self->get_schema_create()
     . $self->{newline}
+    .  "--  get_view_create" 
+    . $self->{newline}
     . $self->get_view_create()
+    . $self->{newline}
+    .  "--  get_permissions_create" 
     . $self->{newline}
     . $self->get_permissions_create()
     . $self->{newline}
+    .  "--  get_inserts" 
+    . $self->{newline}
     . $self->get_inserts()
+    . $self->{newline}
+    .  "--  get_smallpackage_post_sql" 
+    . $self->{newline}
+    . $self->get_smallpackage_post_sql()
+    . $self->{newline}
+    .  "--  get_associations_create" 
     . $self->{newline}
     . $self->get_associations_create();
 }
@@ -228,27 +260,27 @@ sub get_inserts {
   my $self   = shift;
   my $sqlstr = '';
 
-	# Expect array ref of hash refs
+  # Expect array ref of hash refs
   return unless $self->_check_components();
 
-	$self->{log}->debug( Dumper($self->{components}))
-		if $self->{log}->is_debug;
+  $self->{log}->debug( Dumper( $self->{components} ) )
+    if $self->{log}->is_debug;
 
   foreach my $component ( @{ $self->{components} } ) {
     foreach my $vals ( split( "\n", $component->{text} ) ) {
-
 
       $sqlstr .=
           qq{insert into }
         . $component->{name}
         . qq{ values($vals) }
-				. $self->{end_of_statement}
+        . $self->{end_of_statement}
         . $self->{newline};
     }
   }
 
   return $sqlstr;
 }
+
 
 =head2 get_constraints_drop
 
@@ -344,8 +376,6 @@ sub _get_drop_index_sql {
     . $self->{newline};
 }
 
-
-# sub get_special_pre  {}
 
 =head2 get_view_drop
 
@@ -511,6 +541,33 @@ sub _check_attlist {
   }
   return 1;
 }
+
+sub _check_small_packages {
+  my $self = shift;
+
+  # Sanity checks on internal state
+  if ( !defined($self->{small_packages}) || ref($self->{small_packages}) ne q{ARRAY})  {
+    $self->{log}->error(q{small_packages error});
+    return;
+  }
+  my %seen = (); # Check for duplicate entries
+
+  foreach my $sp (@{$self->{small_packages}}) {
+	if (ref($sp) ne 'HASH') {
+	  $self->{log}->error(q{Error in small_package input!});
+	  return;
+	}
+	++$seen{$_} for (keys %{$sp});
+  }
+  foreach my $key (keys %seen) {
+	$self->{log}->warn(qq{Duplicate entry in small_package for key '$key' (} . $seen{$key} . q{ times)})
+	  if $seen{$key} > 1;
+  }
+
+  return 1;
+}
+
+
 
 =head2 get_schema_drop
 
@@ -707,24 +764,31 @@ Create primary key clause, e.g.
 
   constraint pk_<tablename> primary key (<column1>,..,<columnN>)
 
+Returns undefined if list of primary key is empty (i.e. if there are no
+primary keys on given table).
+
 =cut
 
 sub _create_pk_string {
-  my ($self, $tablename, @pks) = @_;
+  my ( $self, $tablename, @pks ) = @_;
 
-	if (!$tablename) {
-		$self->{log}->error(q{Missing argument tablename - cannot create pk string!});
-		return;
-	}
-  
-  return qq{constraint pk_$tablename primary key (} .
-			join(q{,}, @pks)
-		   .q{)};
+  if ( !$tablename ) {
+    $self->{log}->error(q{Missing argument tablename - cannot create pk string!});
+    return;
+  }
+
+  # Return undefined if list of primary key is empty 
+  if ( scalar(@pks) == 0) {
+    $self->{log}->debug(qq{table '$tablename' has no primary keys});
+    return;
+  }
+
+  return qq{constraint pk_$tablename primary key (} . join( q{,}, @pks ) . q{)};
 }
 
 =head2 _get_create_table_sql
 
-Create sql for given table
+Create sql for given table.  
 
 =cut 
 
@@ -732,19 +796,21 @@ sub _get_create_table_sql {
   my ( $self, $table ) = @_;
   my @columns      = ();
   my @primary_keys = ();
+  my @comments     = ();
 
-	# Sanity checks on table ref
-	return unless $self->_check_attlist($table);
+  # Sanity checks on table ref
+  return unless $self->_check_attlist($table);
 
   # Check not null and primary key property for each column. Column
   # visibility is given in $columns[3]. A value of 2 in this field
   # signifies a primary key (which also must be defined as 'not null'.
   foreach my $column ( @{ $table->{attList} } ) {
 
-		if (ref($column) ne 'ARRAY') {
-			$self->{log}->error( q{Error in view attList input - expect an ARRAY ref!} );
-			next COLUMN;
-		}
+    if ( ref($column) ne 'ARRAY' ) {
+      $self->{log}
+        ->error(q{Error in view attList input - expect an ARRAY ref!});
+      next COLUMN;
+    }
 
     # Don't warn on uninitialized values here since there are lots
     # of them.
@@ -759,8 +825,8 @@ sub _get_create_table_sql {
 
     # Add 'not null' if field is primary key
     if ( $col_vis == 2 ) {
-	  $col_val = 'not null';
-	}  
+      $col_val = 'not null';
+    }
 
     # Add column name to list of primary keys if $col_vis == 2
     push @primary_keys, $col_name if ( $col_vis == 2 );
@@ -769,26 +835,53 @@ sub _get_create_table_sql {
     # null when the column is not a primary key:
     # TODO: Special handling for SAS (in subclass)
     if ( $col_val ne q{} && $col_val !~ /^(not )?null$/i && $col_vis != 2 ) {
-      $col_val     = qq{ default $col_val};
+      $col_val = qq{ default $col_val};
     }
-	
+
+	# Prefix non-empty comments with the comment character
+	$col_com = $self->{sql_comment} . qq{ $col_com} if $col_com;
+
     $self->{log}->debug( "column after : "
-        . join( q{,}, $col_name, $col_type, $col_val, $col_com )
-    );
-    push @columns,
-      [$col_name, $col_type, $col_val, $col_com];
+        . join( q{,}, $col_name, $col_type, $col_val, $col_com ) );
+
+ 	# Create a line with out the comment
+    push @columns,  [ $col_name, $col_type, $col_val];
+
+	# Comments are added separately *after* comma on each line
+    push @comments, $col_com;  # possibly undef
   }
   $self->{log}->warn("No columns in table") if !scalar @columns;
 
-	# Format columns nicely
-	@columns = $self->_format_columns(@columns);
+  # Format columns nicely (without the comment column)
+  @columns = $self->_format_columns(@columns);
+  $self->{log}->debug("columns:" .Dumper(\@columns)) ;
+  $self->{log}->debug("comments:" .Dumper(\@comments)) ;
 
-  return qq{create table }
+  # Add comma + newline + indent between the lines.
+  # Note that _create_pk_string can return undef.
+  @columns = (
+    split(
+      /$self->{newline}/,
+      join(
+        $self->{column_separator} . $self->{newline} . $self->{indent},
+        @columns, $self->_create_pk_string( $table->{name}, @primary_keys )
+      )
+    )
+  );
+  # Add the comment column, ensure the comma comes before the comment (if any)
+  {
+    ## no critic (ProhibitNoWarnings)
+	no warnings q{uninitialized};
+	@columns = map { $_ . shift(@comments) } @columns;
+  }
+  $self->{log}->debug("columns:" .Dumper(\@columns)) ;
+
+  return
+      qq{create table }
     . $table->{name} . " ("
     . $self->{newline}
     . $self->{indent}
-    . join( $self->{column_separator} . $self->{newline} . $self->{indent},
-    @columns, $self->_create_pk_string( $table->{name}, @primary_keys ) )
+    . join($self->{newline}, @columns)
     . $self->{newline} . ")"
     . $self->{end_of_statement}
     . $self->{newline};
@@ -1000,10 +1093,78 @@ sub _get_create_index_sql {
 	return $sqlstr;
 }
 
+# Common function for all smallpackage statements. Returns statements
+# for the parsed small packages that matches both db name and the
+# given keyword (e.g. 'post').
+sub _get_smallpackage_sql {
+  my ($self, $keyword) = @_;  
 
-# sub get_special_post  {}
-# sub get_insert {}
-# sub get_constraint_add {}
+  my @statements = ();
+  return unless $self->_check_small_packages();
+
+  # Each small package is a hash ref
+  foreach my $sp ( @{ $self->{small_packages} } ) {
+    # Foreach key in hash, pick those values whose 
+    # keys that contains db name and 'keyword':
+    push @statements, map { $sp->{$_} } grep( /$self->{db}.*:\s*$keyword/, keys %{$sp} );
+  }
+  return join($self->{newline}, @statements);
+
+}
+
+# Add SQL statements BEFORE generated code
+sub get_smallpackage_pre_sql  {
+  my $self = shift;  
+  return $self->_get_smallpackage_sql(q{pre});
+}
+
+# Add SQL statements AFTER generated code
+sub get_smallpackage_post_sql {
+  my $self   = shift;
+  return $self->_get_smallpackage_sql(q{post});
+}
+
+# SQL clauses to add at the end of the named table definitions
+sub get_smallpackage_table_sql  {
+  my $self = shift;
+  $self->{log}->logdie("NOTIMPL");
+}
+
+# SQL clauses to add at the end of the named table primary key
+# constraints
+sub get_smallpackage_pk_sql  {
+  my $self = shift;  
+  $self->{log}->logdie("NOTIMPL");;
+}
+
+# SQL clauses to add at the end of the named table column definitions
+sub get_smallpackage_column_sql  {
+  my $self = shift;  
+  $self->{log}->logdie("NOTIMPL");;
+}
+
+# SQL clauses to add at the end of the named table index definitions
+sub get_smallpackage_index_sql  {
+  my $self = shift;  
+  $self->{log}->logdie("NOTIMPL");;
+}
+
+# User-to-SQL type mappings for the databases
+sub get_smallpackage_typemap_sql  {
+  my $self = shift;  
+  $self->{log}->logdie("NOTIMPL");;
+}
+
+# store macro for generating statements BEFORE generated code
+sub get_smallpackage_macropre_sql  {
+  my $self = shift;  
+  $self->{log}->logdie("NOTIMPL");;
+}
+# store macro for generating statements AFTER generated code
+sub get_smallpackage_macropost_sql  {
+  my $self = shift;  
+  $self->{log}->logdie("NOTIMPL");;
+}
 
 
 1;

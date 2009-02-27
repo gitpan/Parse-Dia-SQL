@@ -1,6 +1,7 @@
 package Parse::Dia::SQL::Output::DB2;
 
-# $Id: DB2.pm,v 1.1 2009/02/23 07:36:17 aff Exp $
+# $Id: DB2.pm,v 1.2 2009/02/26 13:34:53 aff Exp $
+
 =pod
 
 =head1 NAME
@@ -62,26 +63,36 @@ constraint pk_<tablename> primary key (<column1>,..,<columnN>)
 
 For DB2 the PK must be 18 characters or less
 
+Returns undefined if list of primary key is empty (i.e. if there are no
+primary keys on given table).
+
 =cut
 
 
 sub _create_pk_string {
-  my ($self, $tablename, @pks) = @_;
+  my ( $self, $tablename, @pks ) = @_;
 
-	if (!$tablename) {
-		$self->{log}->error(q{Missing argument tablename - cannot create pk string!});
-		return;
-	}
+  if ( !$tablename ) {
+    $self->{log}
+      ->error(q{Missing argument tablename - cannot create pk string!});
+    return;
+  }
+  if ( scalar(@pks) == 0 ) {
+    $self->{log}->debug(qq{table '$tablename' has no primary keys});
+    return;
+  }
 
   # old school name length reduction
-  $tablename = $self->{utils}->mangle_name ($tablename, $self->{object_name_max_length} - 4);
+  $tablename =
+    $self->{utils}
+    ->mangle_name( $tablename, $self->{object_name_max_length} - 4 );
 
   # new school name length reduction
-#  $tablename = $self->{utils}->make_name ($tablename);
+  #  $tablename = $self->{utils}->make_name ($tablename);
 
-  return qq{constraint pk_$tablename primary key (} .
-			join(q{,}, @pks)
-		   .q{)};
+  $self->{log}->debug( qq{tablename: '$tablename' pks: } . join( q{,}, @pks ) );
+
+  return qq{constraint pk_$tablename primary key (} . join( q{,}, @pks ) . q{)};
 }
 
 
