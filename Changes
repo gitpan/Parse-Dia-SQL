@@ -1,5 +1,12 @@
 Revision history for Perl module Parse::Dia::SQL.
 
+0.03  Mon Mar  2 09:57:23 CET 2009
+    - Added table_postfix_options (e.g. 'ENGINE=InnoDB')
+    - Made documentation more consistent.
+    - Removed private subroutines from main documentation.
+    - Made sure parsing is finished before outputting,
+        and updated tests accordingly.
+
 0.02  Fri Feb 27 10:29:36 CET 2009  
     - Fixed package name error.
     - Added generate_small_package_sql() to Output.pm

@@ -1,12 +1,12 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.10 2009/02/27 08:57:26 aff Exp $
+# $Id: Output.pm,v 1.13 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME
 
-Parse::Dia::SQL::Output - Base sql formatter class.
+Parse::Dia::SQL::Output - Create SQL base class.
 
 =head1 SYNOPSIS
 
@@ -41,7 +41,11 @@ use Parse::Dia::SQL::Utils;
 use Parse::Dia::SQL::Logger;
 use Parse::Dia::SQL::Const;
 
-=head2 new
+=head1 METHODS
+
+=over
+
+=item new()
 
 The constructor.  Arguments:
 
@@ -70,9 +74,10 @@ sub new {
     sql_comment      => $param{sql_comment}      || "-- ",
 
     # sql options
-    index_options => $param{index_options}       || [],
-    object_name_max_length => $param{object_name_max_length}
-      || undef,
+    index_options          => $param{index_options}          || [],
+    object_name_max_length => $param{object_name_max_length} || undef,
+    table_postfix_options  => $param{table_postfix_options}  || [],
+    table_postfix_options_separator  => $param{table_postfix_options_separator}  || ' ',
 
     # parsed datastructures
     associations   => $param{associations}   || [],    # foreign keys, indices
@@ -96,12 +101,7 @@ sub new {
 
 
 
-=head2 _init_log
-
-Initialize logger
-
-=cut 
-
+# Initialize logger
 sub _init_log {
   my $self = shift;
 
@@ -110,37 +110,22 @@ sub _init_log {
   return 1;
 }
 
-=head2 _init_const
-
-Initialize Constants component
-
-=cut 
-
+# Initialize Constants component
 sub _init_const {
   my $self = shift;
   $self->{const} = Parse::Dia::SQL::Const::->new();
   return 1;
 }
 
-=head2 _init_utils
-
-Initialize Parse::Dia::SQL::Utils class.
-
-=cut
-
+# Initialize Parse::Dia::SQL::Utils class.
 sub _init_utils {
   my $self = shift;
   $self->{utils} = Parse::Dia::SQL::Utils::->new(db => $self->{db});
   return 1;
 }
 
-=head2 get_comment
-
-Return string with comment containing target database, $VERSION, time
-and list of files etc.
-
-=cut
-
+# Return string with comment containing target database, $VERSION, time
+# and list of files etc.
 sub _get_comment {
   my $self = shift;
   my $files_word =
@@ -172,35 +157,33 @@ sub _get_comment {
     . $self->{newline};
 }
 
-=head2 get_sql
+=item get_sql()
 
-Return all sql
+Return all sql.  The sequence of statements is as follows:
+
+  constraints drop
+  permissions drop
+  view drop
+  schema drop
+  smallpackage pre sql
+  schema create
+  view create
+  permissions create
+  inserts
+  smallpackage post sql
+  associations create
 
 =cut
 
 sub get_sql {
   my $self = shift;
 
-  # tedia2sql
-  #   -- Generated SQL Constraints Drop statements
-  #   -- Generated Permissions Drops
-  #   -- Generated SQL View Drop Statements
-  #   -- Generated SQL Schema Drop statements
-  #   -- Generated SQL Schema
-  #   -- Generated SQL Views
-  #   -- Generated Permissions
-  #   -- Generated SQL Insert statements
-  #   -- Generated SQL Constraints
-
-  $self->{log}->info(q{TODO: Make sure statement sequence is correct}) 
-    if $self->{log}->is_info;
-
   ## No critic (NoWarnings)
   no warnings q{uninitialized};
   return
        "-- comments " 
     . $self->{newline}
-	. $self->_get_comment()
+		. $self->_get_comment()
     . $self->{newline}
     .  "-- get_constraints_drop " 
     . $self->{newline}
@@ -210,11 +193,11 @@ sub get_sql {
     . $self->{newline}
     . $self->get_permissions_drop()
     . $self->{newline}
-    .  "--  get_view_drop" 
+    .  "-- get_view_drop" 
     . $self->{newline}
     . $self->get_view_drop()
     . $self->{newline}
-    .  "--  get_schema_drop" 
+    .  "-- get_schema_drop" 
     . $self->{newline}
     . $self->get_schema_drop()
     . $self->{newline}
@@ -222,40 +205,35 @@ sub get_sql {
     . $self->{newline}
     . $self->get_smallpackage_pre_sql()
     . $self->{newline}
-    .  "--  get_schema_create" 
+    .  "-- get_schema_create" 
     . $self->{newline}
     . $self->get_schema_create()
     . $self->{newline}
-    .  "--  get_view_create" 
+    .  "-- get_view_create" 
     . $self->{newline}
     . $self->get_view_create()
     . $self->{newline}
-    .  "--  get_permissions_create" 
+    .  "-- get_permissions_create" 
     . $self->{newline}
     . $self->get_permissions_create()
     . $self->{newline}
-    .  "--  get_inserts" 
+    .  "-- get_inserts" 
     . $self->{newline}
     . $self->get_inserts()
     . $self->{newline}
-    .  "--  get_smallpackage_post_sql" 
+    .  "-- get_smallpackage_post_sql" 
     . $self->{newline}
     . $self->get_smallpackage_post_sql()
     . $self->{newline}
-    .  "--  get_associations_create" 
+    .  "-- get_associations_create" 
     . $self->{newline}
     . $self->get_associations_create();
 }
 
-=head2 get_inserts
-
-Return insert statements. These are based on content of the
-I<components>, and split on the linefeed character ("\n").
-
-Add $self->{end_of_statement} to each statement.
-
-=cut
-
+# Return insert statements. These are based on content of the
+# I<components>, and split on the linefeed character ("\n").
+#
+# Add $self->{end_of_statement} to each statement.
 sub get_inserts {
   my $self   = shift;
   my $sqlstr = '';
@@ -282,14 +260,9 @@ sub get_inserts {
 }
 
 
-=head2 get_constraints_drop
-
-drop all constraints (e.g. foreign keys and indices)
-
-This sub is split into two parts to make it easy sub subclass either.
-
-=cut
-
+# Drop all constraints (e.g. foreign keys and indices)
+#
+# This sub is split into two parts to make it easy sub subclass either.
 sub get_constraints_drop {
   my $self   = shift;
 
@@ -298,12 +271,7 @@ sub get_constraints_drop {
 		$self->_get_index_drop();
 }
 
-=head2 _get_fk_drop
-
-drop all foreign keys
-
-=cut
-
+# Drop all foreign keys
 sub _get_fk_drop {
   my $self   = shift;
   my $sqlstr = '';
@@ -323,13 +291,7 @@ sub _get_fk_drop {
   return $sqlstr;
 }
 
-
-=head2 _get_index_drop
-
-drop all indices
-
-=cut
-
+# Drop all indices
 sub _get_index_drop {
   my $self   = shift;
 	my $sqlstr = q{};
@@ -360,15 +322,10 @@ sub _get_index_drop {
 
 
 
-=head2 _get_drop_index_sql
-
-create drop index for index on table with given name.  Note that the
-tablename is not used here, but many of the overriding subclasses use
-it, so we include both the tablename and the indexname as arguments to
-keep the interface consistent.
-
-=cut
-
+# Create drop index for index on table with given name.  Note that the
+# tablename is not used here, but many of the overriding subclasses use
+# it, so we include both the tablename and the indexname as arguments to
+# keep the interface consistent.
 sub _get_drop_index_sql {
   my ( $self, $tablename, $indexname ) = @_;
   return qq{drop index $indexname}
@@ -377,12 +334,7 @@ sub _get_drop_index_sql {
 }
 
 
-=head2 get_view_drop
-
-create drop view for all views
-
-=cut
-
+# Create drop view for all views
 sub get_view_drop {
   my $self   = shift;  
   my $sqlstr = '';
@@ -409,20 +361,14 @@ sub get_view_drop {
 
 }
 
-=head2 _check_components
-
-Sanity check on internal state.
-
-Return true if and only if
-
-  $self->{components} should be a defined array ref with 1 or more
-  hash ref elements having two keys 'name' and 'text'
-
-otherwise false.
-
-=cut
-
-
+# Sanity check on internal state.
+#
+# Return true if and only if
+#
+#   $self->{components} should be a defined array ref with 1 or more
+#   hash ref elements having two keys 'name' and 'text'
+#
+# otherwise false.
 sub _check_components {
   my $self   = shift;
   # Sanity checks on internal state
@@ -453,17 +399,14 @@ sub _check_components {
 }
 
 
-=head2 _check_classes
-
-Sanity check on internal state.
-
-Return true if and only if
-
-  $self->{classes} should be a defined array ref with 1 or more elements
-
-=cut
-
-
+# Sanity check on internal state.
+#
+# Return true if and only if
+#
+#  $self->{classes} should be a defined array ref with 1 or more
+#  elements
+#
+# otherwise false.
 sub _check_classes {
   my $self   = shift;
   # Sanity checks on internal state
@@ -481,19 +424,14 @@ sub _check_classes {
 	return 1;
 }
 
-=head2 _check_associations
-
-Sanity check on internal state.
-
-Return true if and only if
-
-  $self->{associations} should be a defined array ref with 1 or more elements
-
-otherwise false.
-
-=cut
-
-
+# Sanity check on internal state.
+# 
+# Return true if and only if
+# 
+#   $self->{associations} should be a defined array ref with 1 or more
+#   elements
+# 
+# otherwise false.
 sub _check_associations {
   my $self   = shift;
   # Sanity checks on internal state
@@ -512,20 +450,15 @@ sub _check_associations {
 	return 1;
 }
 
-=head2 _check_attlist
-
-Sanity check on given reference.
-
-Return true if and only if
-
-  $arg should be a defined hash ref with 1 or more elements
-  $arg->{name} exists and is a defined scalar
-  $arg->{attList} exists and is a defined array ref.
-
-otherwise false.
-
-=cut
-
+# Sanity check on given reference.
+# 
+# Return true if and only if
+# 
+#   $arg should be a defined hash ref with 1 or more elements
+#   $arg->{name} exists and is a defined scalar
+#   $arg->{attList} exists and is a defined array ref.
+# 
+# otherwise false.
 sub _check_attlist {
   my $self = shift;
   my $arg  = shift;
@@ -560,7 +493,7 @@ sub _check_small_packages {
 	++$seen{$_} for (keys %{$sp});
   }
   foreach my $key (keys %seen) {
-	$self->{log}->warn(qq{Duplicate entry in small_package for key '$key' (} . $seen{$key} . q{ times)})
+	$self->{log}->info(qq{Duplicate entry in small_package for key '$key' (} . $seen{$key} . q{ times)})
 	  if $seen{$key} > 1;
   }
 
@@ -569,14 +502,9 @@ sub _check_small_packages {
 
 
 
-=head2 get_schema_drop
-
-create drop table for all tables
-
-TODO: Consider rename to get_table[s]_drop
-
-=cut
-
+# create drop table for all tables
+# 
+# TODO: Consider rename to get_table[s]_drop
 sub get_schema_drop {
   my $self   = shift;
   my $sqlstr = '';
@@ -603,12 +531,7 @@ sub get_schema_drop {
 
 }
 
-=head2 get_permissions_drop
-
-Create revoke sql
-
-=cut
-
+# Create revoke sql
 sub get_permissions_drop {
   my $self   = shift;
   my $sqlstr = '';
@@ -643,12 +566,7 @@ sub get_permissions_drop {
 
 }
 
-=head2 get_permissions_create
-
-Create grant sql
-
-=cut
-
+# Create grant sql
 sub get_permissions_create {
   my $self   = shift;
   my $sqlstr = '';
@@ -682,18 +600,13 @@ sub get_permissions_create {
   return $sqlstr;
 }
 
-=head2 get_associations_create
-
-create associations statements:
-
-This includes the following elements
-
-  - foreign key
-  - index
-  - unique index
-
-=cut
-
+# Create associations statements:
+# 
+# This includes the following elements
+# 
+#   - foreign key
+#   - index
+#   - unique index
 sub get_associations_create {
   my $self   = shift;
   my $sqlstr = '';
@@ -715,12 +628,7 @@ sub get_associations_create {
   return $sqlstr;
 }
 
-=head2 get_schema_create
-
-create table statements
-
-=cut
-
+# Create table statements
 sub get_schema_create {
   my $self   = shift;
   my $sqlstr = '';
@@ -736,12 +644,7 @@ sub get_schema_create {
   return $sqlstr;
 }
 
-=head2 get_view_create
-
-create view statements
-
-=cut
-
+# Create view statements
 sub get_view_create {
   my $self   = shift;
   my $sqlstr = '';
@@ -758,17 +661,12 @@ sub get_view_create {
 }
 
 
-=head2 _create_pk_string
-
-Create primary key clause, e.g.
-
-  constraint pk_<tablename> primary key (<column1>,..,<columnN>)
-
-Returns undefined if list of primary key is empty (i.e. if there are no
-primary keys on given table).
-
-=cut
-
+# Create primary key clause, e.g.
+# 
+#   constraint pk_<tablename> primary key (<column1>,..,<columnN>)
+# 
+# Returns undefined if list of primary key is empty (i.e. if there are
+# no primary keys on given table).
 sub _create_pk_string {
   my ( $self, $tablename, @pks ) = @_;
 
@@ -786,12 +684,7 @@ sub _create_pk_string {
   return qq{constraint pk_$tablename primary key (} . join( q{,}, @pks ) . q{)};
 }
 
-=head2 _get_create_table_sql
-
-Create sql for given table.  
-
-=cut 
-
+# Create sql for given table.  
 sub _get_create_table_sql {
   my ( $self, $table ) = @_;
   my @columns      = ();
@@ -883,19 +776,19 @@ sub _get_create_table_sql {
     . $self->{indent}
     . join($self->{newline}, @columns)
     . $self->{newline} . ")"
+    . $self->{newline}
+    . join(
+        $self->{table_postfix_options_separator},
+        @{ $self->{table_postfix_options} }
+      )
     . $self->{end_of_statement}
     . $self->{newline};
 }
 
-=head2 _format_columns
-
-	Format columns in tabular form using Text::Table.
-
- Input:  arrayref of arrayrefs
- Output: arrayref of arrayrefs
-
-=cut 
-
+# Format columns in tabular form using Text::Table.
+# 
+#  Input:  arrayref of arrayrefs
+#  Output: arrayref of arrayrefs
 sub _format_columns {
   my ( $self, @columns ) = @_;
 	my @columns_out = ();
@@ -913,20 +806,15 @@ sub _format_columns {
 }
 
 
-=head2 _get_create_view_sql
-
-Create sql for given view.
-
-Similar to _get_create_table_sql, but must handle 
-  'from', 
-  'where',
-  'order by', 
-  'group by',
-
-TODO: ADD support for 'having' clause.
-
-=cut 
-
+# Create sql for given view.
+# 
+# Similar to _get_create_table_sql, but must handle 
+#   'from', 
+#   'where',
+#   'order by', 
+#   'group by',
+# 
+# TODO: ADD support for 'having' clause.
 sub _get_create_view_sql {
   my ($self, $view) = @_;
   my @columns = ();
@@ -1022,12 +910,7 @@ sub _get_create_view_sql {
 }
 
 
-=head2 _get_create_association_sql
-
-Create sql for given association.
-
-=cut 
-
+# Create sql for given association.
 sub _get_create_association_sql {
   my ($self, $association) = @_;
 
@@ -1055,12 +938,7 @@ sub _get_create_association_sql {
 }
 
 
-=head2 _get_create_index_sql
-
-Create sql for all indices for given table.
-
-=cut 
-
+# Create sql for all indices for given table.
 sub _get_create_index_sql {
   my ($self, $table) = @_;
 	my $sqlstr = q{};
@@ -1134,45 +1012,42 @@ sub get_smallpackage_table_sql  {
 # constraints
 sub get_smallpackage_pk_sql  {
   my $self = shift;  
-  $self->{log}->logdie("NOTIMPL");;
+  $self->{log}->logdie("NOTIMPL");
 }
 
 # SQL clauses to add at the end of the named table column definitions
 sub get_smallpackage_column_sql  {
   my $self = shift;  
-  $self->{log}->logdie("NOTIMPL");;
+  $self->{log}->logdie("NOTIMPL");
 }
 
 # SQL clauses to add at the end of the named table index definitions
 sub get_smallpackage_index_sql  {
   my $self = shift;  
-  $self->{log}->logdie("NOTIMPL");;
+  $self->{log}->logdie("NOTIMPL");
 }
 
 # User-to-SQL type mappings for the databases
 sub get_smallpackage_typemap_sql  {
   my $self = shift;  
-  $self->{log}->logdie("NOTIMPL");;
+  $self->{log}->logdie("NOTIMPL");
 }
 
 # store macro for generating statements BEFORE generated code
 sub get_smallpackage_macropre_sql  {
   my $self = shift;  
-  $self->{log}->logdie("NOTIMPL");;
+  $self->{log}->logdie("NOTIMPL");
 }
 # store macro for generating statements AFTER generated code
 sub get_smallpackage_macropost_sql  {
   my $self = shift;  
-  $self->{log}->logdie("NOTIMPL");;
+  $self->{log}->logdie("NOTIMPL");
 }
-
 
 1;
 
 __END__
 
-=pod
+=back
 
-Super class for outputting SQL
 
-=cut

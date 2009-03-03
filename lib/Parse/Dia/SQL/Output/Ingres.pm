@@ -1,12 +1,12 @@
 package Parse::Dia::SQL::Output::Ingres;
 
-# $Id: Ingres.pm,v 1.1 2009/02/23 07:36:17 aff Exp $
+# $Id: Ingres.pm,v 1.2 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME 
 
-Ingres.pm - Create SQL for Ingres.
+Parse::Dia::SQL::Output::Ingres - Create SQL for Ingres.
 
 =head1 SEE ALSO
 

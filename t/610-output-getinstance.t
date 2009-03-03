@@ -1,4 +1,4 @@
-#   $Id: 610-output-getinstance.t,v 1.2 2009/02/26 13:50:00 aff Exp $
+#   $Id: 610-output-getinstance.t,v 1.3 2009/02/28 06:54:57 aff Exp $
 
 use warnings;
 use strict;
@@ -18,16 +18,18 @@ use_ok ('Parse::Dia::SQL::Logger');
 my $diasql = undef;
 
 # Test that lives - db => 'db2'
-$diasql = Parse::Dia::SQL->new(db => 'db2',);
-
+$diasql = Parse::Dia::SQL->new(db => 'db2');
 isa_ok($diasql, 'Parse::Dia::SQL');
+
+# Fool Parse::Dia::SQL into thinking convert() was called
+$diasql->{converted} = 1; 
+
 my $subclass = undef;
 lives_ok(
   sub { $subclass = $diasql->get_output_instance(); },
   q{get_output_instance (db2) should not die}
 );
 isa_ok($subclass, 'Parse::Dia::SQL::Output::DB2');
-
 
 # Test that dies - db => 'foo'
 undef $diasql;
@@ -40,13 +42,3 @@ throws_ok(
 ok(Parse::Dia::SQL::Logger::log_on());
 
 __END__
-
-=pod
-
-=head1 TEST NOTE
-
-The test that lives is put before the test that dies to correctly
-initialize the logger.  If we put the dying test case first, we will
-not be able to supress the FATAL message.
-
-=cut

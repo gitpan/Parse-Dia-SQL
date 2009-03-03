@@ -1,4 +1,4 @@
-#   $Id: 611-output-format-columns.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 611-output-format-columns.t,v 1.2 2009/02/28 06:54:57 aff Exp $
 
 use warnings;
 use strict;
@@ -18,6 +18,8 @@ use_ok ('Parse::Dia::SQL::Output');
 use_ok ('Parse::Dia::SQL::Output');
 
 my $diasql = Parse::Dia::SQL->new(db => 'db2');
+$diasql->{converted} = 1; # Fool Parse::Dia::SQL into thinking convert() was called
+
 my $subclass = undef;
 lives_ok( sub { $subclass = $diasql->get_output_instance(); }, q{get_output_instance (db2) should not die});
 isa_ok($subclass, 'Parse::Dia::SQL::Output::DB2');

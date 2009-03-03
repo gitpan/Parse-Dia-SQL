@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.9 2009/02/27 09:31:55 aff Exp $
+# $Id: SQL.pm,v 1.12 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
@@ -145,11 +145,13 @@ use Parse::Dia::SQL::Output::Postgres;
 use Parse::Dia::SQL::Output::Sas;			 
 use Parse::Dia::SQL::Output::Sybase;
 
-our $VERSION = '0.02'; 
+our $VERSION = '0.03'; 
 
 =head1 METHODS
 
-=head2 new
+=over
+
+=item new()
 
 The constructor.  Mandatory arguments:
 
@@ -206,12 +208,7 @@ sub new {
 }
 
 
-=head2 _init_log
-
-Initialize logger
-
-=cut 
-
+# Initialize logger
 sub _init_log {
   my $self = shift;
   my $logger = Parse::Dia::SQL::Logger::->new();
@@ -219,24 +216,14 @@ sub _init_log {
   return 1;
 }
 
-=head2 _init_const
-
-Initialize Constants component
-
-=cut 
-
+# Initialize Constants component
 sub _init_const {
   my $self = shift;
   $self->{const} = Parse::Dia::SQL::Const::->new();
   return 1;
 }
 
-=head2 _init_utils
-
-Initialize Parse::Dia::SQL::Utils class.
-
-=cut
-
+# Initialize Parse::Dia::SQL::Utils class.
 sub _init_utils {
   my $self = shift;
   $self->{utils} = Parse::Dia::SQL::Utils::->new(
@@ -247,27 +234,28 @@ sub _init_utils {
 }
 
 
-=head2 get_output_instance
-
-Return Output subclass.
-
-Some params will be taken from this object unless explicitly set by caller:
-
-	classes 
-	associations 
-	small_packages
-	components
-	files
-
-Dies if db is unknown.
-
-Note special handling for MySQL with separate sub-subclasses for each
-storage engine.
-
-=cut 
-
+# Return Output subclass for the database set in C<new()>.
+# 
+# Some params will be taken from this object unless explicitly set by caller:
+# 
+# 	classes 
+# 	associations 
+# 	small_packages
+# 	components
+# 	files
+# 
+# Returns undef if convert flag is false (to prevent output before
+# conversion).
+#
+# Dies if db is unknown.
 sub get_output_instance {
   my ($self, %param) = @_;
+
+	# Make sure parsing is finished before we can output
+  if (!$self->{converted}) {
+		$self->{log}->error("Cannot output before convert!");
+		return;
+  }
 
   # Add some args to param unless they are set by caller 
   %param =
@@ -275,7 +263,7 @@ sub get_output_instance {
 	  qw(classes associations small_packages components files index_options);
 
   if ($self->{db} eq q{db2}) {
-	return Parse::Dia::SQL::Output::DB2->new(%param);
+		return Parse::Dia::SQL::Output::DB2->new(%param);
   } elsif ($self->{db} eq q{mysql-myisam}) {
     return Parse::Dia::SQL::Output::MySQL::MyISAM->new(%param);
   } elsif ($self->{db} eq q{mysql-innodb}) {
@@ -298,22 +286,17 @@ sub get_output_instance {
 }
 
 
-=head2 convert
-
-Parse the .dia file and create inner representation.
-
-Returns true on success.
-
-Returns undefined if called more than once on the same object.
-
-=cut
-
+# Parse the .dia file and create inner representation.
+#
+# Returns true on success.
+#
+# Returns undefined if called more than once on the same object.
 sub convert {
   my $self = shift;
 
   if ($self->{converted}) {
-	$self->{log}->info("Repeated conversion attempt discarded");
-	return;
+		$self->{log}->info("Repeated conversion attempt discarded");
+		return;
   }
 
   $self->_parse_doms();
@@ -331,7 +314,7 @@ sub convert {
   return 1;
 }
 
-=head2 get_sql
+=item get_sql()
 
 Return sql for given db.  Calls underlying methods that performs
 parsing and sql generation.
@@ -346,15 +329,10 @@ sub get_sql {
   return $output->get_sql();
 }
 
-=head2 _parse_doms
-
-Uncompress the .dia file(s) and parse xml content. Push the parsed xml
-dom onto the docs list.
-
-Return the number of parsed files.
-
-=cut
-
+# Uncompress the .dia file(s) and parse xml content. Push the parsed xml
+# dom onto the docs list.
+#
+# Return the number of parsed files.
 sub _parse_doms {
   my $self = shift;
 
@@ -386,26 +364,16 @@ sub _parse_doms {
   return scalar( @{ $self->{docs} } );
 }
 
-=head2 _get_docs
-
-Returns the parsed xml dom documents (for testing).
-
-=cut
-
+# Returns the parsed xml dom documents (for testing only).
 sub _get_docs {
   my $self = shift;
   return $self->{docs};
 }
 
-=head2 _get_nodelist
-
-Create nodelist from dom.  Return array of array XML::DOM::NodeList
-objects.
-
-Each inner array correspond to a separate input file.
-
-=cut
-
+# Create nodelist from dom.  Return array of array XML::DOM::NodeList
+# objects.
+#
+# Each inner array correspond to a separate input file.
 sub _get_nodelists {
   my $self = shift;
   if ( !$self->{docs} ) {
@@ -421,23 +389,13 @@ sub _get_nodelists {
   return $self->{nodelists};
 }
 
-=head2 get_smallpackages_ref
-
-Accessor
-
-=cut
-
+# Accessor
 sub get_smallpackages_ref {
     my $self = shift;
     return $self->{small_packages};
 }
 
-=head2 _parse_smallpackages
-
-Got through nodelists and return number of 'SmallPackages' found
-
-=cut
-
+# Go through nodelists and return number of 'SmallPackages' found
 sub _parse_smallpackages {
   my $self   = shift;
   my @retarr = ();      # array of hashrefs to return
@@ -487,12 +445,8 @@ sub _parse_smallpackages {
   }
 }
 
-=head2 _parse_smallpackage
-
-Returns hashref where key is name of SmallPackage and value is its content.
-
-=cut
-
+# Returns hashref where key is name of SmallPackage and value is its
+# content.
 sub _parse_smallpackage {
   my $self             = shift;
   my $smallpackageNode = shift;
@@ -523,12 +477,7 @@ sub _parse_smallpackage {
   return;    # Error: Did not find 'stereotype' element
 }
 
-=head2 get_classes_ref
-
-Return hashref with parsed classes.
-
-=cut
-
+# Return hashref with parsed classes.
 sub get_classes_ref {
   my $self = shift;
   $self->{log}->warn(qq{The classes ref is undefined!}) if !$self->{classes};
@@ -537,12 +486,7 @@ sub get_classes_ref {
 }
 
 
-=head2 _parse_classes
-
-Returns hashref where key is name of class and value is its content.
-
-=cut
-
+# Returns hashref where key is name of class and value is its content.
 sub _parse_classes {
   my $self    = shift;
 
@@ -591,27 +535,16 @@ sub _parse_classes {
   return $self->{classes};
 }
 
-=head2 get_components_ref
-
-Accessor
-
-=cut
-
+# Accessor
 sub get_components_ref {
     my $self = shift;
     return $self->{components};
 }
 
 
-=head2 _parse_component
-
-Parse a component and take our what is needed to create inserts.
-
-Returns a hash reference.
-
-=cut 
-
-
+# Parse a component and take our what is needed to create inserts.
+#
+# Returns a hash reference.
 sub _parse_component {
   my $self      = shift;
   my $component = shift;
@@ -666,18 +599,10 @@ sub _parse_component {
 	return {name => $comp_name, text => $comp_text}; 
 }
 
-
-
-=head2 _parse_class
-
-Parse a CLASS and salt away the information needed to generate its SQL
-DDL.  
-
-Returns a hash reference.
-
-=cut 
-
-
+# Parse a CLASS and salt away the information needed to generate its SQL
+# DDL.  
+#
+# Returns a hash reference.
 sub _parse_class {
   my $self  = shift;
   my $class = shift;
@@ -902,24 +827,14 @@ sub _parse_class {
   return $classLookup;
 }
 
-=head2 get_associations_ref
-
-Return hashref with parsed associations.
-
-=cut
-
+# Return hashref with parsed associations.
 sub get_associations_ref {
   my $self = shift;
   return $self->{fk_defs};
 }
 
 
-=head2 _parse_associations
-
-  Scan the nodeList for UML Associations and return them.
-
-=cut 
-
+#  Scan the nodeList for UML Associations and return them.
 sub _parse_associations {
   my $self = shift;
   my $fid = 0; # file sequence number
@@ -950,14 +865,9 @@ sub _parse_associations {
   return $self->{fk_defs};
 }
 
-=head2 _parse_association
-
-Generate the foreign key relationship between two tables: classify the
-relationship, and generate the necessary constraints and centre (join)
-tables.
-
-=cut 
-
+# Generate the foreign key relationship between two tables: classify
+# the relationship, and generate the necessary constraints and centre
+# (join) tables.
 sub _parse_association {
   my $self        = shift;
   my $association = shift;
@@ -1130,13 +1040,8 @@ sub _parse_association {
   return $ok;
 }
 
-=head2 uml_class_lookup
-
-Look up a class given the XML id of the class, taking into account
-placeholder classes.
-
-=cut
-
+# Look up a class given the XML id of the class, taking into account
+# placeholder classes.
 sub uml_class_lookup {
   my $self = shift;
   my $id   = shift;
@@ -1154,13 +1059,8 @@ sub uml_class_lookup {
 }
 
 
-=head2 generate_many_to_many_association 
-
-Generate SQL for a many to many association including generating the
-centre (join) table.
-
-=cut
-
+# Generate SQL for a many to many association including generating the
+# centre (join) table.
 sub generate_many_to_many_association {
   my $self             = shift;
   my $assocName        = shift;
@@ -1258,13 +1158,8 @@ sub generate_many_to_many_association {
   return 1;
 }
 
-=head2 gen_table_view_sql
-
-Create datastructure that represents gevein Table or View SQL and
-store in classes reference.
-
-=cut 
-
+# Create datastructure that represents given Table or View SQL and
+# store in classes reference.
 sub gen_table_view_sql {
   my $self             = shift;
   my $objectName       = shift;
@@ -1292,13 +1187,8 @@ sub gen_table_view_sql {
   return 1;
 }
 
-=head2 add_centre_cols
-
-Add column descriptors for a centre (join) table to an array of
-descriptors passed.
-
-=cut 
-
+# Add column descriptors for a centre (join) table to an array of
+# descriptors passed.
 sub add_centre_cols {
   my $self       = shift;
   my $assocName  = shift;  # For warning messages & constructing constraint name
@@ -1401,13 +1291,8 @@ sub add_centre_cols {
 }
 
 
-=head2 generate_one_to_any_association
-
-Generate data for SQL generation for an association where one side has
-multiplicity one; no additional table is necessary.
-
-=cut
-
+# Generate data for SQL generation for an association where one side has
+# multiplicity one; no additional table is necessary.
 sub generate_one_to_any_association {
   my $self          = shift;
   my $userAssocName = shift;
@@ -1654,13 +1539,8 @@ sub generate_one_to_any_association {
 }
 
 
-=head2 save_foreign_key
-
-Save the details of foreign keys for output later (i.e. push onto
-fk_defs array ref).
-
-=cut 
-
+# Save the details of foreign keys for output later (i.e. push onto
+# fk_defs array ref).
 sub save_foreign_key {
   my $self = shift;
   my $sourceTable = shift;
@@ -1687,3 +1567,6 @@ __END__
 
 
 # End of Parse::Dia::SQL
+
+=back
+

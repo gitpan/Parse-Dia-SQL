@@ -1,12 +1,12 @@
 package Parse::Dia::SQL::Output::MySQL::MyISAM;
 
-# $Id: MyISAM.pm,v 1.2 2009/02/24 05:46:26 aff Exp $
+# $Id: MyISAM.pm,v 1.4 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME 
 
-MyISAM.pm - Create SQL for MySQL MyISAM.
+Parse::Dia::SQL::Output::MySQL::MyISAM - Create SQL for MySQL MyISAM.
 
 =head1 DESCRIPTION
 
@@ -44,6 +44,7 @@ sub new {
   my $self = {};
 
   $param{db} = q{mysql-myisam};    
+  $param{table_postfix_options} = ['ENGINE=MyISAM','DEFAULT CHARSET=latin1'],
   $self = $class->SUPER::new(%param);
 
   bless( $self, $class );

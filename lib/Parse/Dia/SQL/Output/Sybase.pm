@@ -1,12 +1,12 @@
 package Parse::Dia::SQL::Output::Sybase;
 
-# $Id: Sybase.pm,v 1.1 2009/02/23 07:36:17 aff Exp $
+# $Id: Sybase.pm,v 1.2 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME 
 
-Sybase.pm - Create SQL for Sybase.
+Parse::Dia::SQL::Output::Sybase - Create SQL for Sybase.
 
 =head1 SEE ALSO
 

@@ -1,4 +1,4 @@
-#   $Id: 622-output-get-create-view-sql.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 622-output-get-create-view-sql.t,v 1.2 2009/02/28 06:54:57 aff Exp $
 
 use warnings;
 use strict;
@@ -49,11 +49,14 @@ my $view = {
 };
 
 # 2. output
-my $diasql = Parse::Dia::SQL->new(  db             => 'db2'
-);
+my $diasql = Parse::Dia::SQL->new(db => 'db2');
 my $output   = undef;
 
 isa_ok($diasql, 'Parse::Dia::SQL');
+
+# Fool Parse::Dia::SQL into thinking convert() was called
+$diasql->{converted} = 1; 
+
 lives_ok(sub { $output = $diasql->get_output_instance(); },
   q{get_output_instance (db2) should not die});
 

@@ -1,12 +1,12 @@
 package Parse::Dia::SQL::Output::MySQL::InnoDB;
 
-# $Id: InnoDB.pm,v 1.1 2009/02/23 07:36:17 aff Exp $
+# $Id: InnoDB.pm,v 1.3 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME 
 
-InnoDB.pm - Create SQL for MySQL InnoDB.
+Parse::Dia::SQL::Output::MySQL::InnoDB - Create SQL for MySQL InnoDB.
 
 =head1 DESCRIPTION
 
@@ -44,6 +44,7 @@ sub new {
   my $self = {};
 
   $param{db} = q{mysql-innodb};    
+  $param{table_postfix_options} = ['ENGINE=InnoDB','DEFAULT CHARSET=latin1'],
   $self = $class->SUPER::new(%param);
 
   bless( $self, $class );

@@ -1,12 +1,12 @@
 package Parse::Dia::SQL::Output::Sas;
 
-# $Id: Sas.pm,v 1.2 2009/02/24 09:58:24 aff Exp $
+# $Id: Sas.pm,v 1.3 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME 
 
-Sas.pm - Create SQL for Sas.
+Parse::Dia::SQL::Output::Sas - Create SQL for Sas.
 
 =head1 SEE ALSO
 

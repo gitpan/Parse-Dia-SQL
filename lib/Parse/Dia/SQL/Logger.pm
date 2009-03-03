@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Logger;
 
-# $Id: Logger.pm,v 1.2 2009/02/26 13:45:15 aff Exp $
+# $Id: Logger.pm,v 1.5 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
@@ -22,7 +22,7 @@ This module is a wrapper around Log::Log4perl.
 
 =head1 SEE ALSO
 
-  Log::Logperl
+  Log::Log4perl
 
 Make appender_thresholds_adjust return number of appenders changed:
 
@@ -58,13 +58,8 @@ sub new {
   return $self;
 }
 
-=head2 _init_log
-
-Initialize the logger.  The commented lines are deliberately left to
-serve as exmples.
-
-=cut 
-
+# Initialize the logger.  The commented lines are deliberately left to
+# serve as exmples.
 sub _init_log {
   my $self = shift;
 

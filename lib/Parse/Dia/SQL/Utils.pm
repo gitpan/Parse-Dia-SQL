@@ -1,6 +1,22 @@
 package Parse::Dia::SQL::Utils;
 
-# $Id: Utils.pm,v 1.1 2009/02/23 07:36:17 aff Exp $
+# $Id: Utils.pm,v 1.3 2009/03/02 13:41:39 aff Exp $
+
+=pod
+
+=head1 NAME
+
+Parse::Dia::SQL::Utils - Helper class for Parse::Dia::SQL.
+
+=head1 SYNOPSIS
+
+  Not to be used directly.
+
+=head1 DESCRIPTION
+
+Utility functions for Parse::Dia::SQL.
+
+=cut
 
 use warnings;
 use strict;
@@ -306,11 +322,9 @@ sub name_case {
   return lc($value);    # Assumes that all other DBMSs ignore case of names!
 }
 
-# if it looks like <thingy><dia:enum val="value"></thingy> then we
-# will get the 'value' part out given the node is 'thingy'
-
 =head2 get_num_from_node
 
+Return value part of <dia:enum val="value"></thingy>.
 
 =cut
 
@@ -320,11 +334,9 @@ sub get_num_from_node {
 	return $enumNode->getAttribute('val');
 }
 
-# if it looks like <thingy><dia:boolean val="value"></thingy> then we
-# will get the 'value' part out given the node is 'thingy'
-
 =head2 get_bool_from_node
 
+Return value part of <thingy><dia:boolean val="value"></thingy>.
 
 =cut
 
@@ -334,12 +346,12 @@ sub get_bool_from_node {
 	return $enumNode->getAttribute('val');
 }
 
-# Look at a multiplicity descriptor and classify it as 'one' (1, or 1..1),
-# 'zone' (0..1), 'many' (n..m, n..*, where n > 1, m >= n) and 'zmany'
-# (0..n, 0..*, where n > 1)
 
 =head2 classify_multiplicity
 
+Look at a multiplicity descriptor and classify it as 'one' (1, or
+1..1), 'zone' (0..1), 'many' (n..m, n..*, where n > 1, m >= n) and
+'zmany' (0..n, 0..*, where n > 1)
 
 =cut
 
@@ -368,13 +380,13 @@ sub classify_multiplicity {
 }
 
 
-=head2 parseExtras
+# =head2 parseExtras
 
-Parse the name of a Small Package that contains extra SQL clauses for
-the generated SQL, and add the SmallPackage text to the appropriate
-%tableExtras table for the type of extra clause (table, pk, index).
+# Parse the name of a Small Package that contains extra SQL clauses for
+# the generated SQL, and add the SmallPackage text to the appropriate
+# %tableExtras table for the type of extra clause (table, pk, index).
 
-=cut
+# =cut
 
 # sub parseExtras {
 #   my $self   = shift;
@@ -889,19 +901,5 @@ sub add_default_fk {
 1;
 
 __END__
-
-=pod
-
-=head1 NAME
-
-Parse::Dia::SQL::Utils - Helper class for Parse::Dia::SQL.
-
-=head1 SYNOPSIS
-
-  Not to be used directly.
-
-=head1 DESCRIPTION
-
-Utility functions for Parse::Dia::SQL.
 
 # End of Parse::Dia::SQL::Utils

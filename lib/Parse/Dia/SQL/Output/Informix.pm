@@ -1,12 +1,12 @@
 package Parse::Dia::SQL::Output::Informix;
 
-# $Id: Informix.pm,v 1.1 2009/02/24 09:54:55 aff Exp $
+# $Id: Informix.pm,v 1.2 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME 
 
-Informix.pm - Create SQL for Informix.
+Parse::Dia::SQL::Output::Informix - Create SQL for Informix.
 
 =head1 SEE ALSO
 

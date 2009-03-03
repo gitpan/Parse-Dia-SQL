@@ -1,12 +1,12 @@
 package Parse::Dia::SQL::Output::MySQL;
 
-# $Id: MySQL.pm,v 1.2 2009/02/24 05:45:22 aff Exp $
+# $Id: MySQL.pm,v 1.5 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME 
 
-MySQL.pm - Base class for MySQL
+Parse::Dia::SQL::Output::MySQL - Create SQL for MySQL base class
 
 =head1 DESCRIPTION
 
@@ -44,7 +44,6 @@ sub new {
 
   # Set defaults for MySQL (common for all storage engines)
   $param{object_name_max_length} = $param{object_name_max_length} || 64;
-  $param{db} = q{mysql};    
   $self = $class->SUPER::new(%param);
 
   bless( $self, $class );

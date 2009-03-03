@@ -1,4 +1,4 @@
-#   $Id: 621-output-get-create-table-sql.t,v 1.3 2009/02/27 08:35:31 aff Exp $
+#   $Id: 621-output-get-create-table-sql.t,v 1.4 2009/02/28 06:54:57 aff Exp $
 
 use warnings;
 use strict;
@@ -48,6 +48,10 @@ my $table =
 my $diasql = Parse::Dia::SQL->new(db => 'db2');
 my $output   = undef;
 isa_ok($diasql, 'Parse::Dia::SQL');
+
+# Fool Parse::Dia::SQL into thinking convert() was called
+$diasql->{converted} = 1; 
+
 lives_ok(sub { $output = $diasql->get_output_instance(); },
   q{get_output_instance (db2) should not die});
 

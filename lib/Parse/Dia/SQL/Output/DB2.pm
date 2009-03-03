@@ -1,22 +1,22 @@
 package Parse::Dia::SQL::Output::DB2;
 
-# $Id: DB2.pm,v 1.2 2009/02/26 13:34:53 aff Exp $
+# $Id: DB2.pm,v 1.4 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
 =head1 NAME
 
-Parse::Dia::SQL::Output::DB2 - SQL formatter class for DB2.
+Parse::Dia::SQL::Output::DB2 - Create SQL for DB2.
 
 =head1 SYNOPSIS
 
     use Parse::Dia::SQL;
     my $dia = Parse::Dia::SQL->new(...);
-    my $output = $dia->get_output_instance();
-    print $output->get_sql();
+    print $dia->get_sql();
 
 =head1 DESCRIPTION
 
+This class creates SQL for the IBM DB2 database.
 
 =cut
 

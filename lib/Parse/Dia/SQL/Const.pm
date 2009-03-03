@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Const;
 
-# $Id: Const.pm,v 1.2 2009/02/26 13:40:02 aff Exp $
+# $Id: Const.pm,v 1.4 2009/03/02 13:41:39 aff Exp $
 
 =pod
 
