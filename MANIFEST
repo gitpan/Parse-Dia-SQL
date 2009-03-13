@@ -62,6 +62,7 @@ t/685-output-postgres-get-sql.t
 t/686-output-sas-get-sql.t
 t/687-output-mysql-innodb-get-sql.t
 t/688-output-mysql-myisam-get-sql.t
+t/689-output-db2-create-constraint-name.t
 t/700-utils-load.t
 t/701-utils-mangle-name.t
 t/702-utils-make-name.t

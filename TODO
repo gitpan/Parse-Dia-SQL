@@ -1,4 +1,6 @@
-  $Id: TODO,v 1.6 2009/03/02 07:55:19 aff Exp $
+  $Id: TODO,v 1.7 2009/03/13 13:28:17 aff Exp $
+
+- Add option tablespace to create statements. 
 
 - Add $VERSION to all modules.
 

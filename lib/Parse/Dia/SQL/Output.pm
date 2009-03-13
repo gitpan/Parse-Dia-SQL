@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.13 2009/03/02 13:41:39 aff Exp $
+# $Id: Output.pm,v 1.15 2009/03/13 16:05:11 aff Exp $
 
 =pod
 
@@ -684,7 +684,8 @@ sub _create_pk_string {
   return qq{constraint pk_$tablename primary key (} . join( q{,}, @pks ) . q{)};
 }
 
-# Create sql for given table.  
+# Create sql for given table.  Use _format_columns() to 
+# format columns nicely (without the comment column)
 sub _get_create_table_sql {
   my ( $self, $table ) = @_;
   my @columns      = ();
@@ -776,7 +777,7 @@ sub _get_create_table_sql {
     . $self->{indent}
     . join($self->{newline}, @columns)
     . $self->{newline} . ")"
-    . $self->{newline}
+    . $self->{indent}
     . join(
         $self->{table_postfix_options_separator},
         @{ $self->{table_postfix_options} }
@@ -925,6 +926,9 @@ sub _get_create_association_sql {
 			$ref_table,  $ref_column,      $constraint_action
 		 ) = @{$association};
 
+  # Shorten constraint name, if necessary (DB2 only)
+  $constraint_name = $self->_create_constraint_name($constraint_name);
+
 	return
 			qq{alter table $table_name add constraint $constraint_name }
       . $self->{newline}
@@ -935,6 +939,12 @@ sub _get_create_association_sql {
       . qq{ references $ref_table ($ref_column) $constraint_action}
       . $self->{end_of_statement}
       . $self->{newline};
+}
+
+# Added only so that it can be overridden (e.g. in DB2.pm)
+sub _create_constraint_name {
+  my ( $self, $tablename ) = @_;
+  return $tablename;
 }
 
 

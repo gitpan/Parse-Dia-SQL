@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.12 2009/03/02 13:41:39 aff Exp $
+# $Id: SQL.pm,v 1.13 2009/03/13 16:06:44 aff Exp $
 
 =pod
 
@@ -145,7 +145,7 @@ use Parse::Dia::SQL::Output::Postgres;
 use Parse::Dia::SQL::Output::Sas;			 
 use Parse::Dia::SQL::Output::Sybase;
 
-our $VERSION = '0.03'; 
+our $VERSION = '0.04'; 
 
 =head1 METHODS
 

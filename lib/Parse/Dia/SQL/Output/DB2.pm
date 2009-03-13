@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output::DB2;
 
-# $Id: DB2.pm,v 1.4 2009/03/02 13:41:39 aff Exp $
+# $Id: DB2.pm,v 1.5 2009/03/13 14:20:26 aff Exp $
 
 =pod
 
@@ -95,8 +95,28 @@ sub _create_pk_string {
   return qq{constraint pk_$tablename primary key (} . join( q{,}, @pks ) . q{)};
 }
 
+=head2
 
+For DB2 a constraint name must be 18 characters or less. 
 
+Returns shortened tablename.
+
+=cut
+
+sub _create_constraint_name {
+  my ( $self, $constraint_name ) = @_;
+
+  if ( !defined($constraint_name) ||  $constraint_name eq q{} ) {
+	$self->{log}->error( qq{constraint_name was undefined or empty!});
+	return;
+  }
+
+  # new school
+  return $self->{utils}->make_name (0, $constraint_name);
+
+  # old school 
+  #  return $self->{utils}->mangle_name( $constraint_name, $self->{object_name_max_length} - 4 );
+}
 
 1;
 

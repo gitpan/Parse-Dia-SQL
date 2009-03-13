@@ -1,34 +1,28 @@
 --- #YAML:1.0
-name:               Parse-Dia-SQL
-version:            0.03
-abstract:           Convert Dia class diagrams into SQL.
+name:                Parse-Dia-SQL
+version:             0.04
+abstract:            Convert Dia class diagrams into SQL.
+license:             ~
+generated_by:        ExtUtils::MakeMaker version 6.36
+distribution_type:   module
+requires:     
+    Data::Dumper:                  0
+    Digest::MD5:                   0
+    Fatal:                         0
+    File::Find:                    0
+    File::Spec::Functions:         0
+    File::Temp:                    0
+    Getopt::Long:                  0
+    IO::Uncompress::Gunzip:        0
+    Log::Dispatch::FileRotate:     0
+    Log::Log4perl:                 0
+    POSIX:                         0
+    Test::Exception:               0
+    Test::More:                    0
+    Text::Table:                   0
+    XML::DOM:                      0
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
+    version: 1.2
 author:
     - Andreas Faafeng <aff@cpan.org>
-license:            unknown
-distribution_type:  module
-configure_requires:
-    ExtUtils::MakeMaker:  0
-requires:
-    Data::Dumper:         0
-    Digest::MD5:          0
-    Fatal:                0
-    File::Find:           0
-    File::Spec::Functions:  0
-    File::Temp:           0
-    Getopt::Long:         0
-    IO::Uncompress::Gunzip:  0
-    Log::Dispatch::FileRotate:  0
-    Log::Log4perl:        0
-    POSIX:                0
-    Test::Exception:      0
-    Test::More:           0
-    Text::Table:          0
-    XML::DOM:             0
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.48
-meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4

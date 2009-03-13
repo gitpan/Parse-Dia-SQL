@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output::MySQL::InnoDB;
 
-# $Id: InnoDB.pm,v 1.3 2009/03/02 13:41:39 aff Exp $
+# $Id: InnoDB.pm,v 1.4 2009/03/13 16:05:59 aff Exp $
 
 =pod
 
@@ -50,6 +50,27 @@ sub new {
   bless( $self, $class );
   return $self;
 }
+
+# Drop all foreign keys
+sub _get_fk_drop {
+  my $self   = shift;
+  my $sqlstr = '';
+
+  return unless $self->_check_associations();
+
+	# drop fk
+  foreach my $association ( @{ $self->{associations} } ) {
+    my ( $table_name, $constraint_name, undef, undef, undef, undef ) =
+      @{$association};
+
+    $sqlstr .=
+        qq{alter table $table_name drop foreign key $constraint_name }
+      . $self->{end_of_statement}
+      . $self->{newline};
+  }
+  return $sqlstr;
+}
+
 
 1;
 

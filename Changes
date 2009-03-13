@@ -1,5 +1,12 @@
 Revision history for Perl module Parse::Dia::SQL.
 
+0.04  Fri Mar 13 13:13:13 CET 2009
+    - Made foreign keys 18 chars or less on DB2 (overridable)
+      regardless of name length in dia file.
+        (sub _create_constraint_name)
+    - InnoDB: Added drop foreign keys support.
+    - Reduced number of columns in log output to screen.
+
 0.03  Mon Mar  2 09:57:23 CET 2009
     - Added table_postfix_options (e.g. 'ENGINE=InnoDB')
     - Made documentation more consistent.

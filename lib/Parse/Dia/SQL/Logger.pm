@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Logger;
 
-# $Id: Logger.pm,v 1.5 2009/03/02 13:41:39 aff Exp $
+# $Id: Logger.pm,v 1.6 2009/03/13 14:17:23 aff Exp $
 
 =pod
 
@@ -74,7 +74,7 @@ sub _init_log {
     log4perl.appender.screen-main         = Log::Log4perl::Appender::Screen
     log4perl.appender.screen-main.stderr  = 1
     log4perl.appender.screen-main.layout  = PatternLayout
-    log4perl.appender.screen-main.layout.ConversionPattern=[%p] %F %L %M %m%n 
+    log4perl.appender.screen-main.layout.ConversionPattern=[%p] %m%n 
 
     log4perl.appender.file           = Log::Dispatch::FileRotate
     log4perl.appender.file.filename  = dia-sql.log
@@ -91,7 +91,7 @@ sub _init_log {
     log4perl.appender.screen-output            = Log::Log4perl::Appender::Screen
     log4perl.appender.screen-output.stderr     = 1
     log4perl.appender.screen-output.layout     = PatternLayout
-    log4perl.appender.screen-output.layout.ConversionPattern=[%p] %F %L %M %m%n 
+    log4perl.appender.screen-output.layout.ConversionPattern=[%p] %m%n 
     log4perl.additivity.Parse::Dia::SQL::Output  = 0
 
     # Separate logger for Utils.pm
@@ -100,7 +100,7 @@ sub _init_log {
     log4perl.appender.screen-utils            = Log::Log4perl::Appender::Screen
     log4perl.appender.screen-utils.stderr     = 1
     log4perl.appender.screen-utils.layout     = PatternLayout
-    log4perl.appender.screen-utils.layout.ConversionPattern=[%p] %F %L %M %m%n 
+    log4perl.appender.screen-utils.layout.ConversionPattern=[%p] %m%n 
     log4perl.additivity.Parse::Dia::SQL::Utils  = 0
 
   );
