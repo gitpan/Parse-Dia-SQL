@@ -1,5 +1,5 @@
 
-# $Id: Makefile.PL,v 1.1 2009/02/23 07:36:16 aff Exp $
+# $Id: Makefile.PL,v 1.2 2009/03/16 08:45:22 aff Exp $
 
 use strict;
 use warnings;
@@ -33,5 +33,5 @@ WriteMakefile(
     'XML::DOM'                  => 0,
   },
   dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-  clean => { FILES    => 'Dia-SQL-*' },
+  clean => { FILES    => 'Parse-Dia-SQL-*' },
 );

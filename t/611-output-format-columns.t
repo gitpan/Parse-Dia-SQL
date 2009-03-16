@@ -1,4 +1,4 @@
-#   $Id: 611-output-format-columns.t,v 1.2 2009/02/28 06:54:57 aff Exp $
+#   $Id: 611-output-format-columns.t,v 1.3 2009/03/16 07:46:16 aff Exp $
 
 use warnings;
 use strict;
@@ -9,8 +9,7 @@ use Test::Exception;  # test code that dies
 use File::Spec::Functions;
 use lib catdir qw ( blib lib );
 
-#plan tests => 9;
-plan 'no_plan';
+plan tests => 6;
 
 use lib q{lib};
 use_ok ('Parse::Dia::SQL');
@@ -35,7 +34,6 @@ my @form_cols = ();
 lives_ok( sub { @form_cols = $subclass->_format_columns(@columns); }, q{_format_columns should not die});
 
 #$diasql->_format_columns()
-
 diag("TODO: check contents of form_cols");
 
 __END__

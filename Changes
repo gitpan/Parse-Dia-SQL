@@ -1,5 +1,8 @@
 Revision history for Perl module Parse::Dia::SQL.
 
+0.05  Mon Mar 16 08:58:33 CET 2009
+    - Restrict length of foreign keys in drop statements (see 0.04)
+
 0.04  Fri Mar 13 13:13:13 CET 2009
     - Made foreign keys 18 chars or less on DB2 (overridable)
       regardless of name length in dia file.
@@ -14,12 +17,12 @@ Revision history for Perl module Parse::Dia::SQL.
     - Made sure parsing is finished before outputting,
         and updated tests accordingly.
 
-0.02  Fri Feb 27 10:29:36 CET 2009  
+0.02  Fri Feb 27 10:29:36 CET 2009
     - Fixed package name error.
     - Added generate_small_package_sql() to Output.pm
     - Fixed comma-comment bug.
     - Added CLI client.
- 
+
 0.01  Mon Feb 23 08:18:14 CET 2009
     - original version
 

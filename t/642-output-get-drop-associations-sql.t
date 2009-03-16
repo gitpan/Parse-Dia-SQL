@@ -1,4 +1,4 @@
-#   $Id: 642-output-get-drop-associations-sql.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 642-output-get-drop-associations-sql.t,v 1.2 2009/03/16 07:27:17 aff Exp $
 
 use warnings;
 use strict;
@@ -9,7 +9,7 @@ use Test::Exception;
 use File::Spec::Functions;
 use lib catdir qw ( blib lib );
 
-plan tests => 28;
+plan tests => 37;
 
 use lib q{lib};
 use_ok ('Parse::Dia::SQL');
@@ -114,7 +114,49 @@ alter \s+ table \s+ userAttribute \s+ drop \s+ constraint \s+ fk_acua \s* (;)?
 .*/six);
 
 
+##################################################################
+
+my $OBJECT_NAME_MAX_LENGTH_DB2 = 18;
+
+my $diasql2 =  Parse::Dia::SQL->new( file => catfile(qw(t data long_fk_name.dia)), db => 'db2' );
+isa_ok($diasql2, q{Parse::Dia::SQL}, q{Expect a Parse::Dia::SQL object});
+is($diasql2->convert(), 1, q{Expect convert() to return 1});
+
+# 2. output
+my $output2   = undef;
+isa_ok($diasql2, 'Parse::Dia::SQL');
+lives_ok(sub { $output2 = $diasql2->get_output_instance(); },
+  q{get_output_instance (db2) should not die});
+
+isa_ok($output2, 'Parse::Dia::SQL::Output')
+  or diag(Dumper($output2));
+isa_ok($output2, 'Parse::Dia::SQL::Output::DB2')
+  or diag(Dumper($output2));
+
+can_ok($output2, 'get_constraints_drop');
+my $drop_constraints2 = $output2->get_constraints_drop();
+# diag($drop_constraints2);
+
+$drop_constraints2 =~ m/alter \s+ table \s+ \w+ \s+ drop \s+ constraint \s+ (\w+) \s+ .* $/six;
+my $constraint_name2 = $1;
+# diag($constraint_name2);
+
+ok(defined($constraint_name2), q{Expect a defined name})
+  or diag($constraint_name2);
+cmp_ok(length($constraint_name2),
+	   q{<=}, $OBJECT_NAME_MAX_LENGTH_DB2,
+	   qq{$constraint_name2 Expect length below or equal to $OBJECT_NAME_MAX_LENGTH_DB2}) 
+  or diag($constraint_name2);
+
 
 __END__
 
+
+=pod
+
+=head1 SEE ALSO 
+
+689-output-db2-create-constraint-name.t
+
+=cut
 

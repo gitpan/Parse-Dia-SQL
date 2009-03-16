@@ -76,8 +76,9 @@ t/904-kwalitee.t
 t/905-strict.t
 t/906-cover.t
 t/907-test-explicit-plan.t
-t/data/db2.pre.dupe.dia
 t/data/TestERD.dia
+t/data/db2.pre.dupe.dia
+t/data/long_fk_name.dia
 t/data/many_to_many.dia
 t/data/table.col.comment.dia
 META.yml                                 Module meta-data (added by MakeMaker)

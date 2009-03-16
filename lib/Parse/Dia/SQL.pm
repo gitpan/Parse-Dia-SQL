@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.13 2009/03/13 16:06:44 aff Exp $
+# $Id: SQL.pm,v 1.16 2009/03/16 08:47:02 aff Exp $
 
 =pod
 
@@ -12,8 +12,8 @@ Parse::Dia::SQL - Convert Dia class diagrams into SQL.
 
     use Parse::Dia::SQL;
     my $dia = Parse::Dia::SQL->new(
-      file => 't/data/TestERD.dia', 
-      db   => 'db2' 
+      file => 't/data/TestERD.dia',
+      db   => 'db2'
     );
     print $dia->get_sql();
 
@@ -23,9 +23,9 @@ Parse::Dia::SQL - Convert Dia class diagrams into SQL.
 =head1 DESCRIPTION
 
 Dia is a diagram creation program for Linux, Unix and Windows released
-under the GPL license.
+under the I<GNU Public license>.
 
-Parse::Dia::SQL converts Dia class diagrams into SQL. 
+Parse::Dia::SQL converts Dia class diagrams into SQL.
 
 Parse::Dia::SQL is the parser that interprets the .dia file(s) into an
 internal datastructure.
@@ -41,12 +41,10 @@ See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 
 The aim is to suppport the same set of databases as I<tedia2sql>.
 
-=head2 Adding support for additional databases
-
 Adding support for additional databases means to create a subclass of
 Parse::Dia::SQL::Output.
 
-Patches are welcome. 
+Patches are welcome.
 
 =head1 AUTHOR
 
@@ -82,28 +80,32 @@ L<http://tedia2sql.tigris.org/>
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Dia-SQL>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Parse-Dia-SQL>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/Dia-SQL>
+L<http://annocpan.org/dist/Parse-Dia-SQL>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Dia-SQL>
+L<http://cpanratings.perl.org/d/Parse-Dia-SQL>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Dia-SQL>
+L<http://search.cpan.org/dist/Parse-Dia-SQL>
 
 =back
 
 =head1 SEE ALSO
 
-  Parse::Dia::SQL::Output
+=over
 
-  http://tedia2sql.tigris.org/
-  http://live.gnome.org/Dia
+=item * L<http://tedia2sql.tigris.org/>
+
+=item * L<http://live.gnome.org/Dia>
+
+=back
+
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -135,17 +137,17 @@ use Parse::Dia::SQL::Const;
 use Parse::Dia::SQL::Output;
 
 use Parse::Dia::SQL::Output::DB2;
-use Parse::Dia::SQL::Output::Ingres;	 
-use Parse::Dia::SQL::Output::Informix;	 
+use Parse::Dia::SQL::Output::Ingres;
+use Parse::Dia::SQL::Output::Informix;
 use Parse::Dia::SQL::Output::MySQL::InnoDB;
 use Parse::Dia::SQL::Output::MySQL::MyISAM;
 use Parse::Dia::SQL::Output::MySQL;
-use Parse::Dia::SQL::Output::Oracle;	 
-use Parse::Dia::SQL::Output::Postgres; 
-use Parse::Dia::SQL::Output::Sas;			 
+use Parse::Dia::SQL::Output::Oracle;
+use Parse::Dia::SQL::Output::Postgres;
+use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 
-our $VERSION = '0.04'; 
+our $VERSION = '0.05';
 
 =head1 METHODS
 
@@ -185,9 +187,9 @@ sub new {
     components     => [],                           # insert statements
     small_packages => [],
     output         => undef,
-	index_options  => $param{index_options} || [],
-	diaversion  => $param{diaversion} || undef,
-    converted   => 0,  
+    index_options  => $param{index_options} || [],
+    diaversion  => $param{diaversion} || undef,
+    converted   => 0,
   };
 
   bless($self, $class);
@@ -235,15 +237,15 @@ sub _init_utils {
 
 
 # Return Output subclass for the database set in C<new()>.
-# 
+#
 # Some params will be taken from this object unless explicitly set by caller:
-# 
-# 	classes 
-# 	associations 
-# 	small_packages
-# 	components
-# 	files
-# 
+#
+#   classes
+#   associations
+#   small_packages
+#   components
+#   files
+#
 # Returns undef if convert flag is false (to prevent output before
 # conversion).
 #
@@ -251,19 +253,19 @@ sub _init_utils {
 sub get_output_instance {
   my ($self, %param) = @_;
 
-	# Make sure parsing is finished before we can output
+    # Make sure parsing is finished before we can output
   if (!$self->{converted}) {
-		$self->{log}->error("Cannot output before convert!");
-		return;
+        $self->{log}->error("Cannot output before convert!");
+        return;
   }
 
-  # Add some args to param unless they are set by caller 
+  # Add some args to param unless they are set by caller
   %param =
     map { $param{$_} = $self->{$_} unless exists($param{$_}); $_ => $param{$_} }
-	  qw(classes associations small_packages components files index_options);
+      qw(classes associations small_packages components files index_options);
 
   if ($self->{db} eq q{db2}) {
-		return Parse::Dia::SQL::Output::DB2->new(%param);
+	return Parse::Dia::SQL::Output::DB2->new(%param);
   } elsif ($self->{db} eq q{mysql-myisam}) {
     return Parse::Dia::SQL::Output::MySQL::MyISAM->new(%param);
   } elsif ($self->{db} eq q{mysql-innodb}) {
@@ -282,7 +284,7 @@ sub get_output_instance {
     return Parse::Dia::SQL::Output::Sas->new(%param);
   }
 
-  $self->{log}->logdie(qq{Failed to get instance for } . $self->{db});
+  return $self->{log}->logdie(qq{Failed to get instance for } . $self->{db});
 }
 
 
@@ -295,8 +297,8 @@ sub convert {
   my $self = shift;
 
   if ($self->{converted}) {
-		$self->{log}->info("Repeated conversion attempt discarded");
-		return;
+        $self->{log}->info("Repeated conversion attempt discarded");
+        return;
   }
 
   $self->_parse_doms();
@@ -342,8 +344,10 @@ sub _parse_doms {
 
   foreach my $file ( @{ $self->{files} } ) {
 
-    if ( !-f $file || !-r $file ) {
-      $self->{log}->logdie(qq{missing or unreadable file '$file'!});
+    if ( !-f $file ) {
+      $self->{log}->logdie(qq{missing file '$file'!});
+    } elsif ( !-r $file ) {
+      $self->{log}->logdie(qq{unreadable file '$file'!});
     }
 
     # uncompress
@@ -353,12 +357,12 @@ sub _parse_doms {
 
     # parse xml
     my $parser = new XML::DOM::Parser;
-	eval {
-	  push @{ $self->{docs} }, $parser->parse($buffer);
-	};
-	if ($@) {
-	   $self->{log}->logdie(qq{parsing of file '$file' failed});
-	}
+    eval {
+      push @{ $self->{docs} }, $parser->parse($buffer);
+    };
+    if ($@) {
+       $self->{log}->logdie(qq{parsing of file '$file' failed});
+    }
 
   }
   return scalar( @{ $self->{docs} } );
@@ -552,55 +556,54 @@ sub _parse_component {
 
   my ( $i, $currentNode, $comp_name, $comp_text, $nodeType, $nodeAttrName,
     $nodeAttrId, $nodeList );
-	my @insertTexts;
 
-	$nodeList = $component->getElementsByTagName ('dia:attribute');
+    $nodeList = $component->getElementsByTagName ('dia:attribute');
 
-	# parse out the 'stereotype' -- which in this case will
-	# be its name
-	undef ($comp_name);
-	$i=0;
+    # parse out the 'stereotype' -- which in this case will
+    # be its name
+    undef ($comp_name);
+    $i=0;
 
-	# pass 1 to get $comp_name
-	while ($i < $nodeList->getLength && (!$comp_name || !$comp_text)) {
-		$currentNode = $nodeList->item($i);
-		$nodeAttrName = $currentNode->getAttribute ('name');
-	
-		if ($nodeAttrName eq 'stereotype') {
-			$comp_name = $self->{utils}->get_string_from_node ($currentNode);
-			$self->{log}->debug(qq{comp_name=$comp_name});
+    # pass 1 to get $comp_name
+    while ($i < $nodeList->getLength && (!$comp_name || !$comp_text)) {
+        $currentNode = $nodeList->item($i);
+        $nodeAttrName = $currentNode->getAttribute ('name');
 
-			# Dia <0.9 puts strange characters before & after
-			# the component stereotype
-			if ($self->{diaversion} && $self->{diaversion} < 0.9) {
-				$comp_name =~ s/^&#[0-9]+;//s;
-				$comp_name =~ s/&#[0-9]+;$//s;
-			}
+        if ($nodeAttrName eq 'stereotype') {
+            $comp_name = $self->{utils}->get_string_from_node ($currentNode);
+            $self->{log}->debug(qq{comp_name=$comp_name});
 
-		} elsif ($nodeAttrName eq 'text') {
-			$comp_text = $self->{utils}->get_string_from_node ($currentNode);
-			#if ($verbose) { print "Got text from node... (probably multiline)\n"; }
+            # Dia <0.9 puts strange characters before & after
+            # the component stereotype
+            if ($self->{diaversion} && $self->{diaversion} < 0.9) {
+                $comp_name =~ s/^&#[0-9]+;//s;
+                $comp_name =~ s/&#[0-9]+;$//s;
+            }
 
-			# first, get rid of the # starting and ending the text
-			$comp_text =~ s/^#//s;
-			$comp_text =~ s/#$//s;
-		}
+        } elsif ($nodeAttrName eq 'text') {
+            $comp_text = $self->{utils}->get_string_from_node ($currentNode);
+            #if ($verbose) { print "Got text from node... (probably multiline)\n"; }
 
-		$i++;
-	}
+            # first, get rid of the # starting and ending the text
+            $comp_text =~ s/^#//s;
+            $comp_text =~ s/#$//s;
+        }
 
-	# Fail unless both name and text are defined
-	if (!$comp_name || !$comp_text) {
-		$self->{log}->error(qq{Component does not have both name and text, not generating SQL});
-		return;
-	}
+        $i++;
+    }
 
-	# Return a hash ref that represents the component
-	return {name => $comp_name, text => $comp_text}; 
+    # Fail unless both name and text are defined
+    if (!$comp_name || !$comp_text) {
+        $self->{log}->error(qq{Component does not have both name and text, not generating SQL});
+        return;
+    }
+
+    # Return a hash ref that represents the component
+    return {name => $comp_name, text => $comp_text};
 }
 
 # Parse a CLASS and salt away the information needed to generate its SQL
-# DDL.  
+# DDL.
 #
 # Returns a hash reference.
 sub _parse_class {
@@ -638,7 +641,7 @@ sub _parse_class {
   }
 
   if ( $self->{log}->is_debug() ) {
-		## no critic (ProhibitNoWarnings)
+        ## no critic (ProhibitNoWarnings)
     no warnings q{uninitialized};
     $self->{log}
       ->debug("Parsing UML Class name      : $className");
@@ -726,7 +729,7 @@ sub _parse_class {
       "string", 1 );
 
     $self->{log}->debug(
-	"attribute: $attribName - $attribType - $attribVal - $attribVisibility"
+    "attribute: $attribName - $attribType - $attribVal - $attribVisibility"
     );
     my $att = [
       $attribName,       $attribType, $attribVal,
@@ -841,7 +844,7 @@ sub _parse_associations {
 
   my $assocErrs = 0;
   foreach my $nodelist ( @{ $self->{nodelists} } ) {
-    $fid++; 
+    $fid++;
 
     for ( my $i = 0 ; $i < $nodelist->getLength ; $i++ ) {
       my $nodeType = $nodelist->item($i)->getNodeType;
@@ -853,9 +856,9 @@ sub _parse_associations {
 
 
         if ( $nodeAttrType eq 'UML - Association' ) {
-	    $self->{log}->debug("Association Node $i -- type=$nodeAttrType id=$nodeAttrId");
-		# TODO: Check return value:
-	    $self->_parse_association( $nodelist->item($i), [ $fid, $nodeAttrId ] )
+        $self->{log}->debug("Association Node $i -- type=$nodeAttrType id=$nodeAttrId");
+        # TODO: Check return value:
+        $self->_parse_association( $nodelist->item($i), [ $fid, $nodeAttrId ] )
         }
       }
 
@@ -891,7 +894,7 @@ sub _parse_association {
 
     if ( $nodeAttrName eq 'name' ) {
       $assocName = $self->{utils}->get_string_from_node($currentNode);
-      $self->{log}->debug("Got association name=$assocName"); 
+      $self->{log}->debug("Got association name=$assocName");
     }
     elsif ( $nodeAttrName eq 'direction' ) {
       $assocDirection = $self->{utils}->get_num_from_node($currentNode);
@@ -937,7 +940,7 @@ sub _parse_association {
     $goodEnd = $rightConnectionHandle if ($rightConnectionHandle);
     $goodEnd = $self->uml_class_lookup( [ $id->[0], $goodEnd ] )->{name}
       if ($goodEnd);
-    $self->{log}->warn("Association " 
+    $self->{log}->warn("Association "
       . ( $assocName ? $assocName : "<UNNAMED>" )
       . (
       $goodEnd
@@ -1031,7 +1034,7 @@ sub _parse_association {
   }
   else {
     $self->{log}->warn(
-	"Couldn't classify $leftClass->{name}:$rightClass->{name} to generate SQL: $leftMult:$rightMult");
+    "Couldn't classify $leftClass->{name}:$rightClass->{name} to generate SQL: $leftMult:$rightMult");
     $ok = 0;
   }
 
@@ -1105,7 +1108,7 @@ sub generate_many_to_many_association {
     )
     )
   {
-	$self->{log}->debug("add_centre_cols return false - returning");
+    $self->{log}->debug("add_centre_cols return false - returning");
     return;
   }
 
@@ -1118,7 +1121,7 @@ sub generate_many_to_many_association {
     )
     )
   {
-	$self->{log}->debug("add_centre_cols return false - returning");
+    $self->{log}->debug("add_centre_cols return false - returning");
     return;
   }
 
@@ -1135,7 +1138,7 @@ sub generate_many_to_many_association {
   );
 
   # generate the constraint code:
-  #	foreign key -> referenced attribute
+  # foreign key -> referenced attribute
   $self->{log}->debug("Call save_foreign_key (left to right)");
 
   $self->save_foreign_key(
@@ -1148,7 +1151,7 @@ sub generate_many_to_many_association {
   );
 
   # generate the constraint code:
-  #	referenced attribute <- foreign key
+  # referenced attribute <- foreign key
   $self->{log}->debug("Call save_foreign_key (right to left)");
 
   $self->save_foreign_key($assocName, $rightFKName, $rightFKCols,
@@ -1375,13 +1378,13 @@ sub generate_one_to_any_association {
     # tedia2sql v1.2.9b usage of 'on delete clause'
     # The 'on cascade delete' clauses were on opposite ends of
     # the association for one-to-many and one-to-one for ERD mode!
-    #		if ($arity eq 'zmany' && $fkMult eq 'undef') {
-    #			$constraintAction = $fkEnd->{'multiplicity'};
-    #			$fkMult = 'none';
-    #		} elsif ($arity eq 'zone' && $pkMult eq 'undef') {
-    #			$constraintAction = $pkEnd->{'multiplicity'};
-    #			$pkMult = 'none';
-    #		}
+    #       if ($arity eq 'zmany' && $fkMult eq 'undef') {
+    #           $constraintAction = $fkEnd->{'multiplicity'};
+    #           $fkMult = 'none';
+    #       } elsif ($arity eq 'zone' && $pkMult eq 'undef') {
+    #           $constraintAction = $pkEnd->{'multiplicity'};
+    #           $pkMult = 'none';
+    #       }
   }
 
   # If the arity implied by the association is one-to-many, set the
@@ -1482,7 +1485,7 @@ sub generate_one_to_any_association {
     $fkEndKey = fkNamesFromAttList( $pkClassLookup->{name}, $pkAtts );
   }
   $fkAtts = $self->{utils}->attlist_from_names( $fkClassLookup, $fkEndKey );
-	#$self->{log}->warn(q{fkAtts: }. Dumper($fkAtts));
+    #$self->{log}->warn(q{fkAtts: }. Dumper($fkAtts));
 
  # If we're not auto-generating foreign keys, the number of PK and FK attributes
  # must be equal
