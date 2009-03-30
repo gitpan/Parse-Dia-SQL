@@ -1,4 +1,4 @@
-#   $Id: 687-output-mysql-innodb-get-sql.t,v 1.3 2009/02/28 06:54:57 aff Exp $
+#   $Id: 687-output-mysql-innodb-get-sql.t,v 1.4 2009/03/16 20:38:08 aff Exp $
 
 use warnings;
 use strict;
@@ -10,8 +10,6 @@ use File::Spec::Functions;
 use lib catdir qw ( blib lib );
 
 plan tests => 8;
-
-diag 'MySQL InnoDB support is experimental';
 
 use lib q{lib};
 use_ok ('Parse::Dia::SQL');

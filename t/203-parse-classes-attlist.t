@@ -1,4 +1,4 @@
-#   $Id: 203-parse-classes-attlist.t,v 1.2 2009/02/26 13:49:07 aff Exp $
+#   $Id: 203-parse-classes-attlist.t,v 1.3 2009/03/30 10:57:44 aff Exp $
 
 use warnings;
 use strict;
@@ -27,85 +27,85 @@ cmp_ok(scalar(@$classes), q{==}, 14, q{Expect 14 classes});
 # Hash with class/view names as keys and attribute list as (hashref) elements
 my %attList = (
     imageInfo => [
-        [ 'id',            'numeric (18)',  '',                    '2', undef ],
-        [ 'insertionDate', 'timestamp',     'now() not null',      '0', undef ],
-        [ 'md5sum',        'char (32)',     'not null',            '0', undef ],
-        [ 'binaryType',    'varchar (16)',  '\'jpg\' null',        '0', undef ],
-        [ 'name',          'varchar (64)',  'not null',            '0', undef ],
-        [ 'locationList',  'varchar (128)', '\'//imgserver.org\'', '0', undef ],
-        [ 'description',   'varchar (128)', 'null',                '0', undef ]
+        [ 'id',            'numeric (18)',  '',                    '2', '' ],
+        [ 'insertionDate', 'timestamp',     'now() not null',      '0', '' ],
+        [ 'md5sum',        'char (32)',     'not null',            '0', '' ],
+        [ 'binaryType',    'varchar (16)',  '\'jpg\' null',        '0', '' ],
+        [ 'name',          'varchar (64)',  'not null',            '0', '' ],
+        [ 'locationList',  'varchar (128)', '\'//imgserver.org\'', '0', '' ],
+        [ 'description',   'varchar (128)', 'null',                '0', '' ]
     ],
     users_view => [
-        [ 'id',                                        '', '', '0', undef ],
-        [ 'birthDate',                                 '', '', '0', undef ],
-        [ 'name ||\'<\'|| email ||\'>\' as whoIsThis', '', '', '0', undef ],
-        [ 'currentCategory',                           '', '', '0', undef ],
-        [ 'acctBalance',                               '', '', '0', undef ],
-        [ 'active',                                    '', '', '0', undef ]
+        [ 'id',                                        '', '', '0', '' ],
+        [ 'birthDate',                                 '', '', '0', '' ],
+        [ 'name ||\'<\'|| email ||\'>\' as whoIsThis', '', '', '0', '' ],
+        [ 'currentCategory',                           '', '', '0', '' ],
+        [ 'acctBalance',                               '', '', '0', '' ],
+        [ 'active',                                    '', '', '0', '' ]
     ],
     whorated_view => [
-        [ 'a.name',                  '', '', '0', undef ],
-        [ 'count (*) as numRatings', '', '', '0', undef ]
+        [ 'a.name',                  '', '', '0', '' ],
+        [ 'count (*) as numRatings', '', '', '0', '' ]
     ],
     ratings_view => [
-        [ 'b.name',   '', '', '0', undef ],
-        [ 'c.md5sum', '', '', '0', undef ],
-        [ 'a.rating', '', '', '0', undef ]
+        [ 'b.name',   '', '', '0', '' ],
+        [ 'c.md5sum', '', '', '0', '' ],
+        [ 'a.rating', '', '', '0', '' ]
     ],
     extremes => [
-        [ 'name',    'varchar (32)', '', '2', undef ],
-        [ 'colName', 'varchar (64)', '', '0', undef ],
-        [ 'minVal',  'numeric (15)', '', '0', undef ],
-        [ 'maxVal',  'numeric (15)', '', '0', undef ]
+        [ 'name',    'varchar (32)', '', '2', '' ],
+        [ 'colName', 'varchar (64)', '', '0', '' ],
+        [ 'minVal',  'numeric (15)', '', '0', '' ],
+        [ 'maxVal',  'numeric (15)', '', '0', '' ]
     ],
     userSession => [
-        [ 'userInfo_id',   'numeric (18)', '', '2', undef ],
-        [ 'md5sum',        'char (32)',    '', '2', undef ],
-        [ 'insertionDate', 'timestamp',    '', '0', undef ],
-        [ 'expireDate',    'timestamp',    '', '0', undef ],
-        [ 'ipAddress',     'varchar (24)', '', '0', undef ]
+        [ 'userInfo_id',   'numeric (18)', '', '2', '' ],
+        [ 'md5sum',        'char (32)',    '', '2', '' ],
+        [ 'insertionDate', 'timestamp',    '', '0', '' ],
+        [ 'expireDate',    'timestamp',    '', '0', '' ],
+        [ 'ipAddress',     'varchar (24)', '', '0', '' ]
     ],
     attributeCategory => [
-        [ 'id',            'numeric (18)',  '', '2', undef ],
-        [ 'attributeDesc', 'varchar (128)', '', '0', undef ]
+        [ 'id',            'numeric (18)',  '', '2', '' ],
+        [ 'attributeDesc', 'varchar (128)', '', '0', '' ]
     ],
     userImageRating => [
-        [ 'userInfo_id',  'numeric (18)', '', '2', undef ],
-        [ 'imageInfo_id', 'numeric (15)', '', '2', undef ],
-        [ 'rating',       'integer',      '', '0', undef ]
+        [ 'userInfo_id',  'numeric (18)', '', '2', '' ],
+        [ 'imageInfo_id', 'numeric (15)', '', '2', '' ],
+        [ 'rating',       'integer',      '', '0', '' ]
     ],
     userAttribute => [
-        [ 'userInfo_id',          'numeric (18)',  '', '2', undef ],
-        [ 'attributeCategory_id', 'numeric (18)',  '', '2', undef ],
-        [ 'numValue',             'numeric (5,4)', '', '0', undef ]
+        [ 'userInfo_id',          'numeric (18)',  '', '2', '' ],
+        [ 'attributeCategory_id', 'numeric (18)',  '', '2', '' ],
+        [ 'numValue',             'numeric (5,4)', '', '0', '' ]
     ],
     userInfo => [
-        [ 'id',              'numeric (18)',   '', '2', undef ],
-        [ 'insertionDate',   'timestamp',      '', '0', undef ],
-        [ 'md5sum',          'char (32)',      '', '0', undef ],
-        [ 'birthDate',       'timestamp',      '', '0', undef ],
-        [ 'gender',          'char (1)',       '', '0', undef ],
-        [ 'name',            'varchar (32)',   '', '0', undef ],
-        [ 'email',           'varchar (96)',   '', '0', undef ],
-        [ 'currentCategory', 'varchar (32)',   '', '0', undef ],
-        [ 'lastDebitDate',   'timestamp',      '', '0', undef ],
-        [ 'acctBalance',     'numeric (10,2)', '', '0', undef ],
-        [ 'active',          'integer',        '', '0', undef ]
+        [ 'id',              'numeric (18)',   '', '2', '' ],
+        [ 'insertionDate',   'timestamp',      '', '0', '' ],
+        [ 'md5sum',          'char (32)',      '', '0', '' ],
+        [ 'birthDate',       'timestamp',      '', '0', '' ],
+        [ 'gender',          'char (1)',       '', '0', '' ],
+        [ 'name',            'varchar (32)',   '', '0', '' ],
+        [ 'email',           'varchar (96)',   '', '0', '' ],
+        [ 'currentCategory', 'varchar (32)',   '', '0', '' ],
+        [ 'lastDebitDate',   'timestamp',      '', '0', '' ],
+        [ 'acctBalance',     'numeric (10,2)', '', '0', '' ],
+        [ 'active',          'integer',        '', '0', '' ]
     ],
     imageAttribute => [
-        [ 'imageInfo_id',         'numeric (18)', '', '2', undef ],
-        [ 'attributeCategory_id', 'numeric (18)', '', '2', undef ],
-        [ 'numValue',             'numeric (8)',  '', '0', undef ],
-        [ 'category',             'numeric (4)',  '', '0', undef ]
+        [ 'imageInfo_id',         'numeric (18)', '', '2', '' ],
+        [ 'attributeCategory_id', 'numeric (18)', '', '2', '' ],
+        [ 'numValue',             'numeric (8)',  '', '0', '' ],
+        [ 'category',             'numeric (4)',  '', '0', '' ]
     ],
-    categoryNames => [ [ 'name', 'varchar (32)', '', '2', undef ] ],
+    categoryNames => [ [ 'name', 'varchar (32)', '', '2', '' ] ],
     imageCategoryList => [
-        [ 'imageInfo_id', 'numeric (18)', '', '2', undef ],
-        [ 'name',         'varchar (32)', '', '2', undef ]
+        [ 'imageInfo_id', 'numeric (18)', '', '2', '' ],
+        [ 'name',         'varchar (32)', '', '2', '' ]
     ],
     subImageInfo => [
-        [ 'imageInfo_id', 'numeric (18)', '', '2', undef ],
-        [ 'pixSize',      'integer',      '', '2', undef ]
+        [ 'imageInfo_id', 'numeric (18)', '', '2', '' ],
+        [ 'pixSize',      'integer',      '', '2', '' ]
     ],
 );
 

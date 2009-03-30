@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.16 2009/03/16 07:39:17 aff Exp $
+# $Id: Output.pm,v 1.17 2009/03/16 20:29:54 aff Exp $
 
 =pod
 
@@ -129,32 +129,24 @@ sub _init_utils {
 sub _get_comment {
   my $self = shift;
   my $files_word =
-    (scalar(@{ $self->{files} }) == 1)
-    ? q{Input File:       }
-    : q{Input Files:      };
+    (scalar(@{ $self->{files} }) > 1)
+    ? q{Input files}
+    : q{Input file};
 
-  return
-      $self->{sql_comment}
-    . qq{Environment:      }
-    . qq{Perl $], $^X, $Config{archname}}
-    . $self->{newline}
-    . $self->{sql_comment}
-    . qq{Target Database:  }
-    . $self->{db}
-    . $self->{newline}
-    . $self->{sql_comment}
-    . qq{Parse::SQL::Dia version: }
-    . $Parse::Dia::SQL::VERSION
-    . $self->{newline}
-    . $self->{sql_comment}
-    . qq{Generated at:     }
-    . scalar localtime()
-    . $self->{newline}
-    . $self->{sql_comment}
-    . $files_word
-    . join( q{,}, @{$self->{files}} )
-    . $self->{newline}
-    . $self->{newline};
+  my @arr = 
+  (
+    [ q{Environment},             qq{Perl $], $^X} ],
+    [ q{Architecture},            qq{$Config{archname}} ],
+    [ q{Target Database},         $self->{db} ],
+    [ q{Parse::SQL::Dia},         $Parse::Dia::SQL::VERSION ],
+    [ q{Generated at},            scalar localtime() ],
+    [ $files_word,                join( q{, }, @{ $self->{files} } ) ] 
+	);
+							 
+  my $tb = Text::Table->new();
+  $tb->load( @arr );
+
+	return scalar $tb->table();
 }
 
 =item get_sql()

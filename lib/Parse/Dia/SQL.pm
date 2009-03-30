@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.16 2009/03/16 08:47:02 aff Exp $
+# $Id: SQL.pm,v 1.20 2009/03/30 08:01:03 aff Exp $
 
 =pod
 
@@ -23,7 +23,7 @@ Parse::Dia::SQL - Convert Dia class diagrams into SQL.
 =head1 DESCRIPTION
 
 Dia is a diagram creation program for Linux, Unix and Windows released
-under the I<GNU Public license>.
+under the I<GNU General Public License>.
 
 Parse::Dia::SQL converts Dia class diagrams into SQL.
 
@@ -56,9 +56,9 @@ CPAN.
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-dia-sql at
+Please report any bugs or feature requests to C<bug-parse-dia-sql at
 rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Dia-SQL>.  I will be
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Parse-Dia-SQL>.  I will be
 notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
 
@@ -147,7 +147,7 @@ use Parse::Dia::SQL::Output::Postgres;
 use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 METHODS
 
@@ -1466,7 +1466,7 @@ sub generate_one_to_any_association {
     # Otherwise just use the marked primary key...
 
     $pkAtts   = $pkPK;
-    $pkEndKey = namesFromAttList($pkAtts);
+    $pkEndKey = $self->{utils}->names_from_attlist($pkAtts);
   }
 
   # If there was no user-supplied PK name, but PK generation is allowed, do it
@@ -1482,6 +1482,7 @@ sub generate_one_to_any_association {
     $fkEndKey =~ s/\s//g;
   }
   else {
+    
     $fkEndKey = fkNamesFromAttList( $pkClassLookup->{name}, $pkAtts );
   }
   $fkAtts = $self->{utils}->attlist_from_names( $fkClassLookup, $fkEndKey );

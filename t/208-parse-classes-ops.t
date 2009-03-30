@@ -1,4 +1,4 @@
-#   $Id: 208-parse-classes-ops.t,v 1.2 2009/02/26 13:49:07 aff Exp $
+#   $Id: 208-parse-classes-ops.t,v 1.3 2009/03/30 10:57:44 aff Exp $
 
 use warnings;
 use strict;
@@ -28,70 +28,70 @@ cmp_ok(scalar(@$classes), q{==}, 14, q{Expect 14 classes});
 # (hashref) elements
 my %ops = (
     imageInfo => [
-        [ 'idx_iimd5', 'unique index', [ 'md5sum' ], '', undef ],
-        [ 'idx_iiid',  'index',        [ 'id' ],     '', undef ],
-        [ 'all',       'grant',        [ 'fmorg' ],  '', undef ],
-        [ 'select',    'grant',        [ 'public' ], '', undef ]
+        [ 'idx_iimd5', 'unique index', [ 'md5sum' ], '', '' ],
+        [ 'idx_iiid',  'index',        [ 'id' ],     '', '' ],
+        [ 'all',       'grant',        [ 'fmorg' ],  '', '' ],
+        [ 'select',    'grant',        [ 'public' ], '', '' ]
     ],
     subImageInfo => [
-        [ 'idx_siiid', 'index', [ 'imageInfo_id' ], '', undef ],
-        [ 'idx_siips', 'index', [ 'pixSize' ],      '', undef ],
-        [ 'all',       'grant', [ 'fmorg' ],        '', undef ]
+        [ 'idx_siiid', 'index', [ 'imageInfo_id' ], '', '' ],
+        [ 'idx_siips', 'index', [ 'pixSize' ],      '', '' ],
+        [ 'all',       'grant', [ 'fmorg' ],        '', '' ]
     ],
     imageCategoryList => [
-        [ 'idx_iclidnm', 'index', [ 'imageInfo_id', 'name' ], '', undef ],
-        [ 'all', 'grant', [ 'fmorg' ], '', undef ]
+        [ 'idx_iclidnm', 'index', [ 'imageInfo_id', 'name' ], '', '' ],
+        [ 'all', 'grant', [ 'fmorg' ], '', '' ]
     ],
     categoryNames => [
-        [ 'select', 'grant', [ 'public' ], '', undef ],
-        [ 'all',    'grant', [ 'fmorg' ],  '', undef ]
+        [ 'select', 'grant', [ 'public' ], '', '' ],
+        [ 'all',    'grant', [ 'fmorg' ],  '', '' ]
     ],
-    imageAttribute => [ [ 'all', 'grant', [ 'fmorg' ], '', undef ] ],
+    imageAttribute => [ [ 'all', 'grant', [ 'fmorg' ], '', '' ] ],
     userInfo => [
-        [ 'idx_uinm', 'unique index', [ 'name', 'md5sum' ], '', undef ],
-        [ 'idx_uiid', 'index', [ 'id' ],    '', undef ],
-        [ 'all',      'grant', [ 'fmorg' ], '', undef ]
+        [ 'idx_uinm', 'unique index', [ 'name', 'md5sum' ], '', '' ],
+        [ 'idx_uiid', 'index', [ 'id' ],    '', '' ],
+        [ 'all',      'grant', [ 'fmorg' ], '', '' ]
     ],
     userAttribute => [
-        [ 'idx_uauiid', 'index', [ 'userInfo_id' ], '', undef ],
-        [ 'all',        'grant', [ 'fmorg' ],       '', undef ]
+        [ 'idx_uauiid', 'index', [ 'userInfo_id' ], '', '' ],
+        [ 'all',        'grant', [ 'fmorg' ],       '', '' ]
     ],
     userImageRating => [
-        [ 'idx_uiruid', 'index', [ 'userInfo_id' ], '', undef ],
-        [ 'all',        'grant', [ 'fmorg' ],       '', undef ]
+        [ 'idx_uiruid', 'index', [ 'userInfo_id' ], '', '' ],
+        [ 'all',        'grant', [ 'fmorg' ],       '', '' ]
     ],
     attributeCategory => [
-        [ 'idx_acid', 'index', [ 'id' ],    '', undef ],
-        [ 'all',      'grant', [ 'fmorg' ], '', undef ]
+        [ 'idx_acid', 'index', [ 'id' ],    '', '' ],
+        [ 'all',      'grant', [ 'fmorg' ], '', '' ]
     ],
     userSession => [
-        [ 'idx_usmd5', 'index', [ 'md5sum' ], '', undef ],
-        [ 'all',       'grant', [ 'fmorg' ],  '', undef ]
+        [ 'idx_usmd5', 'index', [ 'md5sum' ], '', '' ],
+        [ 'all',       'grant', [ 'fmorg' ],  '', '' ]
     ],
     extremes => [
-        [ 'select', 'grant', [ 'public' ], '', undef ],
-        [ 'all',    'grant', [ 'fmorg' ],  '', undef ]
+        [ 'select', 'grant', [ 'public' ], '', '' ],
+        [ 'all',    'grant', [ 'fmorg' ],  '', '' ]
     ],
     ratings_view => [
-        [ 'userImageRating a',                     'from',     [], '', undef ],
-        [ 'userImageRating z',                     'from',     [], '', undef ],
-        [ 'userInfo b',                            'from',     [], '', undef ],
-        [ 'imageInfo c',                           'from',     [], '', undef ],
-        [ '(((a.userInfo_id = b.id)',              'where',    [], '', undef ],
-        [ 'and (a.imageInfo_id = c.id)',           'where',    [], '', undef ],
-        [ 'and (a.userInfo_id = z.userInfo_id))',  'where',    [], '', undef ],
-        [ 'and (a.userInfo_id <> z.userInfo_id))', 'where',    [], '', undef ],
-        [ 'c.md5sum,b.name,a.rating',              'order by', [], '', undef ]
+        [ 'userImageRating a',                     'from',     [], '', '' ],
+        [ 'userImageRating z',                     'from',     [], '', '' ],
+        [ 'userInfo b',                            'from',     [], '', '' ],
+        [ 'imageInfo c',                           'from',     [], '', '' ],
+        [ '(((a.userInfo_id = b.id)',              'where',    [], '', '' ],
+        [ 'and (a.imageInfo_id = c.id)',           'where',    [], '', '' ],
+        [ 'and (a.userInfo_id = z.userInfo_id))',  'where',    [], '', '' ],
+        [ 'and (a.userInfo_id <> z.userInfo_id))', 'where',    [], '', '' ],
+        [ 'c.md5sum,b.name,a.rating',              'order by', [], '', '' ]
     ],
     whorated_view => [
-        [ 'userInfo a',             'from',     [], '', undef ],
-        [ 'userImageRating b',      'from',     [], '', undef ],
-        [ '(a.id = b.userInfo_id)', 'where',    [], '', undef ],
-        [ 'a.name',                 'group by', [], '', undef ]
+        [ 'userInfo a',             'from',     [], '', '' ],
+        [ 'userImageRating b',      'from',     [], '', '' ],
+        [ '(a.id = b.userInfo_id)', 'where',    [], '', '' ],
+        [ 'a.name',                 'group by', [], '', '' ]
     ],
     users_view => [
-        [ 'userInfo',      'from',     [], '', undef ],
-        [ 'userInfo.name', 'order by', [], '', undef ]
+        [ 'userInfo',      'from',     [], '', '' ],
+        [ 'userInfo.name', 'order by', [], '', '' ]
     ],
 );
 

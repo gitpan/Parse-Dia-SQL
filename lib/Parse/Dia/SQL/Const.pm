@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Const;
 
-# $Id: Const.pm,v 1.4 2009/03/02 13:41:39 aff Exp $
+# $Id: Const.pm,v 1.5 2009/03/30 10:23:19 aff Exp $
 
 =pod
 
@@ -11,8 +11,8 @@ Parse::Dia::SQL::Const - Constants and lookup methods
 =head1 SYNOPSIS
 
     use Parse::Dia::SQL::Const;
-    my $const = Parse::Dia::SQL::Const::->new();
-    my @list = $const->get_small_pack_gen_seq()
+    my $const = Parse::Dia::SQL::Const->new();
+    my @rdbms = $const->get_rdbms();
 
 =head1 DESCRIPTION
 

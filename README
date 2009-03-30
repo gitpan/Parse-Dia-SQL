@@ -1,8 +1,8 @@
 Dia-SQL
 
 Parse::Dia::SQL converts Dia class diagrams into SQL. Dia is a diagram
-creation program for Linux, Unix and Windows released under the GPL
-license.
+creation program for Linux, Unix and Windows released under the 
+GNU General Public License (GPL).
 
 Parse::Dia::SQL is based on tedia2sql by Tim Ellis and others.  See the
 AUTHORS file for details.
@@ -42,5 +42,4 @@ COPYRIGHT AND LICENCE
 
 Copyright (C) 2008 Andreas Faafeng
 
-This program is released under the following license: gpl
-
+This program is released under the following license: GPL

@@ -33,11 +33,13 @@ t/207-parse-classes-uindxn.t
 t/208-parse-classes-ops.t
 t/300-parse-classes-many-to-many.t
 t/500-get-associations.t
+t/501-get-associations-implicit.t
 t/600-output-load.t
 t/610-output-getinstance.t
 t/611-output-format-columns.t
-t/620-output-get-schema-create.t
+t/612-output-get-comment.t
 t/620-output-get-schema-create-col-comment.t
+t/620-output-get-schema-create.t
 t/621-output-get-create-table-sql.t
 t/622-output-get-create-view-sql.t
 t/623-output-get-view-create.t
@@ -78,6 +80,7 @@ t/906-cover.t
 t/907-test-explicit-plan.t
 t/data/TestERD.dia
 t/data/db2.pre.dupe.dia
+t/data/implicit_role.dia
 t/data/long_fk_name.dia
 t/data/many_to_many.dia
 t/data/table.col.comment.dia

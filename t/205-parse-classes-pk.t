@@ -1,4 +1,4 @@
-#   $Id: 205-parse-classes-pk.t,v 1.2 2009/02/26 13:49:07 aff Exp $
+#   $Id: 205-parse-classes-pk.t,v 1.3 2009/03/30 10:57:44 aff Exp $
 
 use warnings;
 use strict;
@@ -26,35 +26,35 @@ cmp_ok(scalar(@$classes), q{==}, 14, q{Expect 14 classes});
 
 # Hash with class/view names as keys and primary key as (hashref) elements
 my %pk = (
-    imageInfo => [ [ 'id', 'numeric (18)', '', '2', undef ] ],
+    imageInfo => [ [ 'id', 'numeric (18)', '', '2', '' ] ],
     subImageInfo => [
-        [ 'imageInfo_id', 'numeric (18)', '', '2', undef ],
-        [ 'pixSize',      'integer',      '', '2', undef ]
+        [ 'imageInfo_id', 'numeric (18)', '', '2', '' ],
+        [ 'pixSize',      'integer',      '', '2', '' ]
     ],
     imageCategoryList => [
-        [ 'imageInfo_id', 'numeric (18)', '', '2', undef ],
-        [ 'name',         'varchar (32)', '', '2', undef ]
+        [ 'imageInfo_id', 'numeric (18)', '', '2', '' ],
+        [ 'name',         'varchar (32)', '', '2', '' ]
     ],
-    categoryNames => [ [ 'name', 'varchar (32)', '', '2', undef ] ],
+    categoryNames => [ [ 'name', 'varchar (32)', '', '2', '' ] ],
     imageAttribute => [
-        [ 'imageInfo_id',         'numeric (18)', '', '2', undef ],
-        [ 'attributeCategory_id', 'numeric (18)', '', '2', undef ]
+        [ 'imageInfo_id',         'numeric (18)', '', '2', '' ],
+        [ 'attributeCategory_id', 'numeric (18)', '', '2', '' ]
     ],
-    userInfo => [ [ 'id', 'numeric (18)', '', '2', undef ] ],
+    userInfo => [ [ 'id', 'numeric (18)', '', '2', '' ] ],
     userAttribute => [
-        [ 'userInfo_id',          'numeric (18)', '', '2', undef ],
-        [ 'attributeCategory_id', 'numeric (18)', '', '2', undef ]
+        [ 'userInfo_id',          'numeric (18)', '', '2', '' ],
+        [ 'attributeCategory_id', 'numeric (18)', '', '2', '' ]
     ],
     userImageRating => [
-        [ 'userInfo_id',  'numeric (18)', '', '2', undef ],
-        [ 'imageInfo_id', 'numeric (15)', '', '2', undef ]
+        [ 'userInfo_id',  'numeric (18)', '', '2', '' ],
+        [ 'imageInfo_id', 'numeric (15)', '', '2', '' ]
     ],
-    attributeCategory => [ [ 'id', 'numeric (18)', '', '2', undef ] ],
+    attributeCategory => [ [ 'id', 'numeric (18)', '', '2', '' ] ],
     userSession => [
-        [ 'userInfo_id', 'numeric (18)', '', '2', undef ],
-        [ 'md5sum',      'char (32)',    '', '2', undef ]
+        [ 'userInfo_id', 'numeric (18)', '', '2', '' ],
+        [ 'md5sum',      'char (32)',    '', '2', '' ]
     ],
-    extremes => [ [ 'name', 'varchar (32)', '', '2', undef ] ],
+    extremes => [ [ 'name', 'varchar (32)', '', '2', '' ] ],
     ratings_view  => [],
     whorated_view => [],
     users_view    => [],
