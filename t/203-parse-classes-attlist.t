@@ -1,4 +1,4 @@
-#   $Id: 203-parse-classes-attlist.t,v 1.3 2009/03/30 10:57:44 aff Exp $
+#   $Id: 203-parse-classes-attlist.t,v 1.4 2009/04/01 08:10:43 aff Exp $
 
 use warnings;
 use strict;
@@ -28,7 +28,7 @@ cmp_ok(scalar(@$classes), q{==}, 14, q{Expect 14 classes});
 my %attList = (
     imageInfo => [
         [ 'id',            'numeric (18)',  '',                    '2', '' ],
-        [ 'insertionDate', 'timestamp',     'now() not null',      '0', '' ],
+        [ 'insertionDate', 'timestamp',     'not null',      '0', '' ],
         [ 'md5sum',        'char (32)',     'not null',            '0', '' ],
         [ 'binaryType',    'varchar (16)',  '\'jpg\' null',        '0', '' ],
         [ 'name',          'varchar (64)',  'not null',            '0', '' ],

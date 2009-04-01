@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.20 2009/03/30 08:01:03 aff Exp $
+# $Id: SQL.pm,v 1.24 2009/04/01 07:47:30 aff Exp $
 
 =pod
 
@@ -146,8 +146,9 @@ use Parse::Dia::SQL::Output::Oracle;
 use Parse::Dia::SQL::Output::Postgres;
 use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
+use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 METHODS
 
@@ -282,6 +283,8 @@ sub get_output_instance {
     return Parse::Dia::SQL::Output::Postgres->new(%param);
   } elsif ($self->{db} eq q{sas}) {
     return Parse::Dia::SQL::Output::Sas->new(%param);
+  } elsif ($self->{db} eq q{sqlite3}) {
+    return Parse::Dia::SQL::Output::SQLite3->new(%param);
   }
 
   return $self->{log}->logdie(qq{Failed to get instance for } . $self->{db});
@@ -688,6 +691,7 @@ sub _parse_class {
     #    class   => $class,        # reference to class DOM
     name    => $className,    # Class name
     type    => $classType,    # Class type table/view
+    comment => $classComment, # Class comment
     attList => [],            # list of attributes
     atts    => {},            # lookup table of attributes
     pk      => [],            # list of primary key attributes
@@ -727,6 +731,7 @@ sub _parse_class {
       $self->{utils}
       ->get_value_from_object( $singleAttrib, "dia:attribute", "name", "comment",
       "string", 1 );
+    $attribComment =~ s/\n/ /g;
 
     $self->{log}->debug(
     "attribute: $attribName - $attribType - $attribVal - $attribVisibility"
@@ -1483,7 +1488,9 @@ sub generate_one_to_any_association {
   }
   else {
     
-    $fkEndKey = fkNamesFromAttList( $pkClassLookup->{name}, $pkAtts );
+    $self->{log}->warn( "No FK attibute in specified in $assocName");  
+	# TODO: Implement the below method:
+    #$fkEndKey = fkNamesFromAttList( $pkClassLookup->{name}, $pkAtts );
   }
   $fkAtts = $self->{utils}->attlist_from_names( $fkClassLookup, $fkEndKey );
     #$self->{log}->warn(q{fkAtts: }. Dumper($fkAtts));

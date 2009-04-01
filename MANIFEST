@@ -19,6 +19,7 @@ lib/Parse/Dia/SQL/Output/Oracle.pm
 lib/Parse/Dia/SQL/Output/Postgres.pm
 lib/Parse/Dia/SQL/Output/Sas.pm
 lib/Parse/Dia/SQL/Output/Sybase.pm
+lib/Parse/Dia/SQL/Output/SQLite3.pm
 lib/Parse/Dia/SQL/Utils.pm
 t/000-load.t
 t/001-new.t
@@ -65,6 +66,7 @@ t/686-output-sas-get-sql.t
 t/687-output-mysql-innodb-get-sql.t
 t/688-output-mysql-myisam-get-sql.t
 t/689-output-db2-create-constraint-name.t
+t/690-output-sqlite3-get-sql.t
 t/700-utils-load.t
 t/701-utils-mangle-name.t
 t/702-utils-make-name.t

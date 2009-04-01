@@ -1,4 +1,4 @@
-#   $Id: 204-parse-classes-atts.t,v 1.3 2009/03/30 10:57:44 aff Exp $
+#   $Id: 204-parse-classes-atts.t,v 1.4 2009/04/01 08:10:43 aff Exp $
 
 use warnings;
 use strict;
@@ -40,7 +40,7 @@ my %atts = (
         'public' => [],
         'id'     => [ 'id', 'numeric (18)', '', '2', '' ],
         'insertiondate' =>
-          [ 'insertionDate', 'timestamp', 'now() not null', '0', '' ]
+          [ 'insertionDate', 'timestamp', 'not null', '0', '' ]
     },
     subImageInfo => {
         'fmorg'        => [],

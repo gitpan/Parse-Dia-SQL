@@ -1,4 +1,4 @@
-#   $Id: 500-get-associations.t,v 1.2 2009/03/30 10:38:54 aff Exp $
+#   $Id: 500-get-associations.t,v 1.3 2009/04/01 05:12:56 aff Exp $
 
 use warnings;
 use strict;
@@ -8,7 +8,7 @@ use Test::More;
 use File::Spec::Functions;
 use lib catdir qw ( blib lib );
 
-plan tests => 49;
+plan tests => 53;
 
 use_ok ('Parse::Dia::SQL');
 use_ok ('Parse::Dia::SQL::Const');

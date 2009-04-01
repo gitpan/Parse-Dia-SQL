@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Const;
 
-# $Id: Const.pm,v 1.5 2009/03/30 10:23:19 aff Exp $
+# $Id: Const.pm,v 1.8 2009/04/01 07:31:10 aff Exp $
 
 =pod
 
@@ -40,6 +40,7 @@ my @RDBMS = qw (
   postgres
   sas
   sybase
+  sqlite3
 );
 
 my %OUTPUT_CLASS = (
@@ -54,6 +55,7 @@ my %OUTPUT_CLASS = (
   'postgres'     => 'Parse::Dia::SQL::Output::Postgres',
   'sas'          => 'Parse::Dia::SQL::Output::SAS',
   'sybase'       => 'Parse::Dia::SQL::Output::Sybase',
+  'sqlite3'      => 'Parse::Dia::SQL::Output::SQLite3',
 );
 
 # Each statement type must be generated in correct order
@@ -116,9 +118,9 @@ Database to class lookup. Used by Output->new.
 sub get_class_name {
   my ($self, $db) = @_;
   if (exists($OUTPUT_CLASS{$db})) {
-	return $OUTPUT_CLASS{$db};
+		return $OUTPUT_CLASS{$db};
   } else {
-	return;
+		return;
   }
 }
 

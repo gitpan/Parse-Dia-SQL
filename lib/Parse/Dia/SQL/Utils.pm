@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Utils;
 
-# $Id: Utils.pm,v 1.3 2009/03/02 13:41:39 aff Exp $
+# $Id: Utils.pm,v 1.4 2009/03/31 08:54:34 aff Exp $
 
 =pod
 
@@ -37,6 +37,7 @@ my %MAX_NAME_LEN = (
   oracle   => 30,
   postgres => 63,
   sas      => 32,
+  sqlite   => 60,
 );
 
 # TODO: Make this a object variable

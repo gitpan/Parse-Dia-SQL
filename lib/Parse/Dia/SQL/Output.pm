@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.17 2009/03/16 20:29:54 aff Exp $
+# $Id: Output.pm,v 1.19 2009/04/01 07:44:26 aff Exp $
 
 =pod
 
@@ -133,20 +133,23 @@ sub _get_comment {
     ? q{Input files}
     : q{Input file};
 
-  my @arr = 
-  (
-    [ q{Environment},             qq{Perl $], $^X} ],
-    [ q{Architecture},            qq{$Config{archname}} ],
-    [ q{Target Database},         $self->{db} ],
-    [ q{Parse::SQL::Dia},         $Parse::Dia::SQL::VERSION ],
-    [ q{Generated at},            scalar localtime() ],
-    [ $files_word,                join( q{, }, @{ $self->{files} } ) ] 
-	);
-							 
+  my @arr = (
+    [ q{Parse::SQL::Dia}, qq{version $Parse::Dia::SQL::VERSION} ],
+    [ q{Documentation},   q{http://search.cpan.org/dist/Parse-Dia-SQL/} ],
+    [ q{Environment},     qq{Perl $], $^X} ],
+    [ q{Architecture},    qq{$Config{archname}} ],
+    [ q{Target Database}, $self->{db} ],
+    [ $files_word,     join(q{, }, @{ $self->{files} }) ],
+    [ q{Generated at}, scalar localtime() ],
+  );
+
+  # Add the sql_comment to first sub-element of all elements
+  @arr = map { $_->[0] = $self->{sql_comment}. $_->[0]; $_ } @arr;
+
   my $tb = Text::Table->new();
   $tb->load( @arr );
 
-	return scalar $tb->table();
+  return scalar $tb->table();
 }
 
 =item get_sql()
@@ -173,9 +176,7 @@ sub get_sql {
   ## No critic (NoWarnings)
   no warnings q{uninitialized};
   return
-       "-- comments "
-    . $self->{newline}
-        . $self->_get_comment()
+	  $self->_get_comment()
     . $self->{newline}
     .  "-- get_constraints_drop "
     . $self->{newline}

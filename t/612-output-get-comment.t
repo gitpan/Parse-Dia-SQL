@@ -1,4 +1,4 @@
-#   $Id: 612-output-get-comment.t,v 1.4 2009/03/30 11:46:07 aff Exp $
+#   $Id: 612-output-get-comment.t,v 1.6 2009/04/01 07:53:33 aff Exp $
 
 use warnings;
 use strict;
@@ -9,7 +9,7 @@ use Test::Exception;  # test code that dies
 use File::Spec::Functions;
 use lib catdir qw ( blib lib );
 
-plan tests => 5;
+plan tests => 6;
 
 use lib q{lib};
 use_ok ('Parse::Dia::SQL');
@@ -26,7 +26,9 @@ isa_ok($subclass, 'Parse::Dia::SQL::Output::DB2');
 my $comment = undef;
 lives_ok( sub { $comment = $subclass->_get_comment(); }, q{_get_comment should not die});
 
-#diag($subclass->_get_comment());
-diag("TODO: check contents of gc");
+# check that comments start with "--"
+cmp_ok(scalar(grep(!/^--/, split("\n", $subclass->_get_comment()))),
+  q{==}, 0, q{Expect 0 lines to not begin with --});
+
 
 __END__

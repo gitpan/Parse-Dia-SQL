@@ -1,4 +1,6 @@
-  $Id: TODO,v 1.10 2009/03/27 10:33:43 aff Exp $
+  $Id: TODO,v 1.11 2009/04/01 05:10:33 aff Exp $
+
+- Add test for missing FK (formerly fkNamesFromAttList) 
 
 - Add support for loading statements from external files.
 

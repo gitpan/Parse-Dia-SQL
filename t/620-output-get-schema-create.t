@@ -1,4 +1,4 @@
-#   $Id: 620-output-get-schema-create.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 620-output-get-schema-create.t,v 1.2 2009/04/01 08:10:43 aff Exp $
 
 use warnings;
 use strict;
@@ -52,7 +52,7 @@ my $create_table = $subclass->get_schema_create();
 like($create_table, qr|.*
   create \s+ table \s+ imageInfo \s* \(
      \s* id \s+ numeric \s* \(18\) \s+ not \s+ null \s* ,
-     \s* insertionDate \s+ timestamp \s+ default \s+ now\(\) \s+ not \s+ null \s* ,
+     \s* insertionDate \s+ timestamp \s+ not \s+ null \s* ,
      \s* md5sum \s+ char \s* \(32\) \s+ not \s+ null \s* ,
      \s* binaryType \s+ varchar \s* \(16\) \s+ default \s+ 'jpg' \s+ null \s* ,
      \s* name \s+ varchar \s* \(64\) \s+ not \s+ null \s* ,

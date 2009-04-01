@@ -1,4 +1,4 @@
-#   $Id: 650-output-get-create-associations.t,v 1.1 2009/02/23 07:36:17 aff Exp $
+#   $Id: 650-output-get-create-associations.t,v 1.2 2009/04/01 05:15:23 aff Exp $
 
 use warnings;
 use strict;
@@ -9,15 +9,14 @@ use Test::Exception;
 use File::Spec::Functions;
 use lib catdir qw ( blib lib );
 
-plan tests => 29;
+plan tests => 39;
 
 use_ok ('Parse::Dia::SQL');
 
 my $diasql =  Parse::Dia::SQL->new( file => catfile(qw(t data TestERD.dia)), db => 'db2' );
 isa_ok($diasql, q{Parse::Dia::SQL}, q{Expect a Parse::Dia::SQL object});
 
-# TODO: Add test on return value - call wrapper
-$diasql->convert();
+ok $diasql->convert();
 
 # Output
 my $output   = undef;
@@ -105,8 +104,7 @@ undef $diasql;
 my $diasql_m2m =  Parse::Dia::SQL->new( file => catfile(qw(t data many_to_many.dia)), db => 'db2' );
 isa_ok($diasql_m2m, q{Parse::Dia::SQL}, q{Expect a Parse::Dia::SQL object});
 
-# TODO: Add test on return value - call wrapper
-$diasql_m2m->convert();
+ok $diasql_m2m->convert();
 
 my $association_m2m_arrayref = $diasql_m2m->get_associations_ref();
 #diag("association_m2m_arrayref: ".Dumper($association_m2m_arrayref));
@@ -160,5 +158,36 @@ alter \s+ table \s+ student_course \s+ add \s+ constraint \s+ stdn_crs_fk_StntSn
 like($association_str_m2m, qr/.*
 alter \s+ table \s+ student_course \s+ add \s+ constraint \s+ lTeT8iBKfXObJYiSrq \s+ foreign \s+ key \s* \( \s* ssn \s* \) \s* references \s+ course \s+ \s* \( \s* course_id \) \s* on \s+ delete \s+ cascade
 .*/six);
+
+# ------ implicit role ------
+my $diasql_ir =  Parse::Dia::SQL->new( file => catfile(qw(t data implicit_role.dia)), db => 'db2' );
+isa_ok($diasql_ir, q{Parse::Dia::SQL}, q{Expect a Parse::Dia::SQL object});
+
+ok $diasql_ir->convert();
+
+my $output_ir   = undef;
+isa_ok($diasql_ir, 'Parse::Dia::SQL');
+lives_ok(sub { $output_ir = $diasql_ir->get_output_instance(); },
+  q{get_output_instance (db2) should not die});
+
+isa_ok($output_ir, 'Parse::Dia::SQL::Output')
+  or diag(Dumper($output_ir));
+isa_ok($output_ir, 'Parse::Dia::SQL::Output::DB2')
+  or diag(Dumper($output_ir));
+
+can_ok($output_ir, 'get_associations_create');
+
+# associations = foreign keys + indices
+my $association_str_ir = $output_ir->get_associations_create();
+#diag $association_str_ir;
+
+like($association_str_ir, qr/.*
+alter \s+ table \s+ emp \s+ add \s+ constraint \s+ emp_fk_Dept_id 
+ \s+ foreign \s+ key \s+ \( \s* dept_id \s* \)
+ \s+ references \s+ dept \s+ \( \s* id \s* \) \s+ ;
+.*/six);
+
+
+
 
 __END__
