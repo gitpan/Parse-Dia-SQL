@@ -1,10 +1,10 @@
 --- #YAML:1.0
 name:               Parse-Dia-SQL
-version:            0.07
+version:            0.08
 abstract:           Convert Dia class diagrams into SQL.
 author:
     - Andreas Faafeng <aff@cpan.org>
-license:            unknown
+license:            gpl
 distribution_type:  module
 configure_requires:
     ExtUtils::MakeMaker:  0
@@ -24,6 +24,8 @@ requires:
     Test::More:           0
     Text::Table:          0
     XML::DOM:             0
+resources:
+    repository:  http://tedia2sql.tigris.org/source/browse/tedia2sql/
 no_index:
     directory:
         - t
@@ -32,3 +34,20 @@ generated_by:       ExtUtils::MakeMaker version 6.48
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4
+keywords:
+    - Parse
+    - Dia
+    - SQL
+    - DDL
+    - RDBMS
+    - DB2
+    - Informix
+    - Ingres
+    - InnoDB
+    - MyISAM
+    - MySQL
+    - Oracle
+    - Postgres
+    - SQLite3
+    - Sas
+    - Sybase

@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.24 2009/04/01 07:47:30 aff Exp $
+# $Id: SQL.pm,v 1.26 2009/04/14 12:07:17 aff Exp $
 
 =pod
 
@@ -31,15 +31,39 @@ Parse::Dia::SQL is the parser that interprets the .dia file(s) into an
 internal datastructure.
 
 Parse::Dia::SQL::Output (or one of its sub classes) can take the
-datastructure and generate SQL statements it represents.
+datastructure and generate the SQL statements it represents.
 
 =head1 MODELLING HOWTO
 
 See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 
-=head1 DATABASE SUPPORT NOTE
+=head1 DATABASE SUPPORT
 
-The aim is to suppport the same set of databases as I<tedia2sql>.
+The following databases are supported:
+
+=over
+
+=item DB2
+
+=item Informix
+
+=item Ingres
+
+=item Oracle
+
+=item Postgres
+
+=item Sas
+
+=item SQLite3
+
+=item Sybase
+
+=item MySQL InnoDB
+
+=item MySQL MyISAM
+
+=back
 
 Adding support for additional databases means to create a subclass of
 Parse::Dia::SQL::Output.
@@ -148,7 +172,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 METHODS
 
