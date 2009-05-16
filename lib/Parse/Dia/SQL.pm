@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.27 2009/05/16 12:24:28 aff Exp $
+# $Id: SQL.pm,v 1.29 2009/05/16 18:02:51 aff Exp $
 
 =pod
 
@@ -36,6 +36,14 @@ datastructure and generate the SQL statements it represents.
 =head1 MODELLING HOWTO
 
 See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
+
+=head2 Modelling differences from tedia2sql
+
+=over
+
+=item * Index options are supported.  Text is taken from the I<comments> field of the I<operation>, i.e. the index.  A database specific default value is used if the I<comments> field is left blank.  Consult the Output sub class' constructor.
+
+=back
 
 =head1 DATABASE SUPPORT
 
@@ -172,7 +180,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =head1 METHODS
 

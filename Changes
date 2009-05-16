@@ -1,5 +1,9 @@
 Revision history for Perl module Parse::Dia::SQL.
 
+0.10 Sat May 16 21:03:57 CEST 2009
+    - Use recent (6.50) EU::MM in build to get LICENCE
+      MIN_PERL_VERSION, META_MERGE correctly set.
+
 0.09 Sat May 16 15:29:28 CEST 2009
     - SQLite3: Fixed a bug in the update constraint trigger
     - SQLite3: Added 'on delete cascade' support
