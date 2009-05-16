@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output::SQLite3;
 
-# $Id: SQLite3.pm,v 1.4 2009/04/01 08:01:55 aff Exp $
+# $Id: SQLite3.pm,v 1.5 2009/05/14 09:42:47 aff Exp $
 
 =pod
 
@@ -11,7 +11,7 @@ Parse::Dia::SQL::Output::SQLite3 - Create SQL for SQLite version 3.
 =head1 SYNOPSIS
 
     use Parse::Dia::SQL;
-    my $dia = Parse::Dia::SQL->new(...);
+    my $dia = Parse::Dia::SQL->new(file => 'foo.dia', db => 'sqlite3');
     print $dia->get_sql();
 
 =head1 DESCRIPTION
@@ -143,7 +143,7 @@ sub _get_create_table_sql {
 
 Generate drop table statments for all tables using SQLite syntax:
 
-  drop table I<foo> if exists
+  drop table {foo} if exists
 
 =cut
 
@@ -181,7 +181,7 @@ CLASS:
 
 Generate drop view statments for all tables using SQLite syntax:
 
-  drop view I<foo> if exists
+  drop view {foo} if exists
 
 =cut
 
@@ -221,30 +221,21 @@ CLASS:
 
 Drop foreign key enforcement triggers using SQLite syntax:
 
-  drop trigger I<foo> if exists
+  drop trigger {foo} if exists
   
 The automatically generated foreign key enforcement triggers are:
 
-See L<_get_create_association_sql> for more details.
+See L<"_get_create_association_sql"> for more details.
 
 =over
 
-=item
+=item I<constraint_name>_bi_tr
 
-I<constraint_name>_bi_tr
+=item I<constraint_name>_bu_tr
 
-=item
+=item I<constraint_name>_buparent_tr
 
-I<constraint_name>_bu_tr
-
-=item
-
-I<constraint_name>_buparent_tr
-
-=item
-
-I<constraint_name>_bdparent_tr
-
+=item I<constraint_name>_bdparent_tr
 
 =back
 
@@ -297,7 +288,7 @@ sub _get_fk_drop {
 
 drop index statement using SQLite syntax:
 
-  drop index I<foo> if exists
+  drop index {foo} if exists
 
 =cut
 
@@ -333,45 +324,105 @@ sub get_permissions_drop {
 
 Create the foreign key enforcement triggers using SQLite syntax:
 
-  create trigger I<fkname>[_bi_tr|_bu_tr|_bdparent_tr|_buparent_tr]
+  create trigger {fkname}[_bi_tr|_bu_tr|_bdparent_tr|_buparent_tr]
 
 Because SQLite doesn't natively enforce foreign key constraints (see L<http://www.sqlite.org/omitted.html>), 
 we use triggers to emulate this behaviour.
 
-The trigger names are the default contraint name (something like I<parent_table>_fk_I<fk_column>) with suffixes:
+The trigger names are the default contraint name (something like I<child_table>_fk_I<child_fkcolumn>) with suffixes described below.
 
 =over
 
-=item
+=item I<{constraint_name}> is the name of the association, either specified or generated.
+
+=item I<{child_table}> is the name of the dependent or child table.
+
+=item I<{child_fkcolumn}> is the field in the dependent table that hold the foreign key.
+
+=item I<{parent_table}> is the name of the parent table.
+
+=item I<{parent_key}> is the key field of the parent table.
+
+=back
+
+=head3 Before insert - Dependent Table
 
 I<constraint_name>_bi_tr
 
 Before insert on the child table require that the parent key exists.
 
-=item
+  create trigger {constraint_name}_bi_tr before insert on {child_table}
+    for each row 
+      begin 
+        select 
+          raise(abort, 'insert on table {child_table} violates foreign key constraint {constraint_name}')
+          where new.{child_fkcolumn} is not null and (select {parent_key} from {parent_table} where {parent_key}=new.{child_fkcolumn}) is null;
+      end;
+
+=head3 Before update - Dependent Table
 
 I<constraint_name>_bu_tr
 
 Before update on the child table require that the parent key exists.
 
-=item
+  create trigger {constraint_name}_bu_tr before update on {table_name} 
+    for each row 
+      begin 
+        select raise(abort, 'update on table {child_table} violates foreign key constraint {constraint_name}') 
+        where new.{child_fkcolumn} is not null and (select {parent_key} from {parent_table} where {parent_key}=new.{child_fkcolumn}) is null;
+      end;
+
+
+=head3 Before update - Parent Table
 
 I<constraint_name>_buparent_tr
 
-Before update on the parent table ensure that there are no dependant child records.
+Before update on the primary key of the parent table ensure that there are no dependent child records.
+Note that cascading updates B<don't work>.
 
-=item
+  create trigger {constraint_name}_buparent_tr before update on {parent_table}
+    for each row when new.{parent_key} <> old.{parent_key}
+      begin 
+        select raise(abort, 'update on table {parent_table} violates foreign key constraint {constraint_name} on {child_table}') 
+        where (select {child_fkcolumn} from {child_table} where {child_fkcolumn}=old.{parent_key}) is not null;
+      end;
+
+=head3 Before delete - Parent Table
 
 I<constraint_name>_bdparent_tr
 
-Default trigger: Before delete on the parent table ensure that there are no dependant child records.
+The default behaviour can be modified through the contraint (in the multiplicity field) of the association.
 
-If 'on delete cascade' is specified as the contraint (in the multiplicity field): 
-Before delete on the parent table delete all dependant child records.
+=head4 Default (On Delete Restrict)
 
+Before delete on the parent table ensure that there are no dependent child records.
 
-=back
+  create trigger {constraint_name}_bdparent_tr before delete on {parent_table}
+    for each row 
+      begin 
+        select raise(abort, 'delete on table {parent_table} violates foreign key constraint {constraint_name} on {child_table}') 
+        where (select {child_fkcolumn} from {child_table} where {child_fkcolumn}=old.{parent_key}) is not null;
+      end;
 
+=head4 On Delete Cascade
+
+Before delete on the parent table delete all dependent child records.
+
+  create trigger {constraint_name}_bdparent_tr before delete on {parent_table} 
+    for each row 
+      begin 
+        delete from {child_table} where {child_table}.{child_fkcolumn}=old.{parent_key};
+      end;
+
+=head4 On Delete Set Null
+
+Before delete on the parent table set the foreign key field(s) in all dependent child records to NULL.
+
+  create trigger {constraint_name}_bdparent_tr before delete on {parent_table} 
+    for each row 
+      begin 
+        update {child_table} set {child_table}.{child_fkcolumn}=null where {child_table}.{child_fkcolumn}=old.{parent_key};
+      end;
 
 =cut
 
@@ -400,13 +451,13 @@ sub _get_create_association_sql {
 
   $temp = $constraint_name . "_bi_tr";
   $sqlstr .=
-qq{create trigger $temp before insert on $table_name for each row begin select raise(abort, 'insert on table $table_name violates foreign key constraint $constraint_name') WHERE NEW.$key_column is not null and (select $ref_column from $ref_table where $ref_column=new.$key_column) is null;end}
+qq{create trigger $temp before insert on $table_name for each row begin select raise(abort, 'insert on table $table_name violates foreign key constraint $constraint_name') where new.$key_column is not null and (select $ref_column from $ref_table where $ref_column=new.$key_column) is null;end}
     . $self->{end_of_statement}
     . $self->{newline};
 
   $temp = $constraint_name . "_bu_tr";
   $sqlstr .=
-qq{create trigger $temp before update on $table_name for each row begin select raise(abort, 'update on table $table_name violates foreign key constraint $constraint_name') WHERE NEW.$key_column is not null and (select $ref_column from $ref_table where $ref_column=new.$key_column) is null;end}
+qq{create trigger $temp before update on $table_name for each row begin select raise(abort, 'update on table $table_name violates foreign key constraint $constraint_name') where new.$key_column is not null and (select $ref_column from $ref_table where $ref_column=new.$key_column) is null;end}
     . $self->{end_of_statement}
     . $self->{newline};
 
@@ -415,6 +466,11 @@ qq{create trigger $temp before update on $table_name for each row begin select r
   if ( $constraint_action =~ /on delete cascade/i ) {
     $sqlstr .=
 qq{create trigger $temp before delete on $ref_table for each row begin delete from $table_name where $table_name.$key_column=old.$ref_column;end}
+      . $self->{end_of_statement}
+      . $self->{newline};
+  } elsif ( $constraint_action =~ /on delete set null/i ) {
+    $sqlstr .=
+qq{create trigger $temp before delete on $ref_table for each row begin update $table_name set $key_column=null where $table_name.$key_column=old.$ref_column;end}
       . $self->{end_of_statement}
       . $self->{newline};
   } else    # default on delete restrict
@@ -428,7 +484,7 @@ qq{create trigger $temp before delete on $ref_table for each row begin select ra
   # Cascade updates doesn't work, so we always restrict
   $temp = $constraint_name . "_buparent_tr";
   $sqlstr .=
-qq{create trigger $temp before update on $ref_table for each row begin select raise(abort, 'update on table $ref_table violates foreign key constraint $constraint_name on $table_name') where (select $key_column from $table_name where $key_column=old.$ref_column) is not null;end}
+qq{create trigger $temp before update on $ref_table for each row when new.$ref_column <> old.$ref_column begin select raise(abort, 'update on table $ref_table violates foreign key constraint $constraint_name on $table_name') where (select $key_column from $table_name where $key_column=old.$ref_column) is not null;end}
     . $self->{end_of_statement}
     . $self->{newline};
 
@@ -438,6 +494,25 @@ qq{create trigger $temp before update on $ref_table for each row begin select ra
 }
 
 1;
+
+=head1 TODO
+
+Things that might get added in future versions:
+
+=head3 Mandatory constraints
+
+The current foreign key triggers allow NULL in the child table. This might use a keyword in the 
+multiplicity field (perhaps 'required') or could check the 'not null' state of the child fkcolumn.
+
+=head3 Views
+
+Views haven't been tested. They might already work, but who knows...
+
+=head3 Other stuff
+
+Bugs etc
+
+=cut
 
 __END__
 

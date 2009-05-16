@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.19 2009/04/01 07:44:26 aff Exp $
+# $Id: Output.pm,v 1.22 2009/05/16 12:24:28 aff Exp $
 
 =pod
 
@@ -607,19 +607,22 @@ sub get_associations_create {
   my $self   = shift;
   my $sqlstr = '';
 
-    # Check both ass. (fk) and classes (index)
-    return unless $self->_check_associations();
-    return unless $self->_check_classes();
+	# Check both ass. (fk) and classes (index) before operating on the
+	# array refs.
 
-    # foreign key
-  foreach my $object (@{ $self->{associations} }) {
-        $sqlstr .= $self->_get_create_association_sql($object);
-  }
+	# foreign keys
+	if ($self->_check_associations()) {
+		foreach my $object (@{ $self->{associations} }) {
+			$sqlstr .= $self->_get_create_association_sql($object);
+		}
+	}
 
-    # index
-  foreach my $object (@{ $self->{classes} }) {
-        $sqlstr .= $self->_get_create_index_sql($object);
-  }
+	# indices
+	if ($self->_check_classes()) {
+		foreach my $object (@{ $self->{classes} }) {
+			$sqlstr .= $self->_get_create_index_sql($object);
+		}
+	}
 
   return $sqlstr;
 }
@@ -963,15 +966,24 @@ sub _get_create_index_sql {
             $self->{log}->error( q{Error in ops input - expect an ARRAY ref, got } . ref($operation));
             next OPERATION;
         }
-        my ($opname,$optype,$colref) = ($operation->[0],$operation->[1],$operation->[2]);
 
-        # 2nd element can be index, unique index, grant, etc
-        next if ($optype !~ qr/^(unique )?index$/i);
+				# Extract elements (the stereotype is not in use)
+        my ($opname,$optype,$colref,$opstereotype,$opcomment) = ($operation->[0],$operation->[1],$operation->[2],$operation->[3],$operation->[4]);
+
+        # 2nd element can be index, unique index, grant, etc. 
+				# Accept "index" only in this context. 
+        if ($optype !~ qr/^(unique )?index$/i) {
+					$self->{log}->debug( qq{Skipping optype '$optype' - not (unique) index});
+					next OPERATION;
+				}
+				# Use operation comment as index option if defined, otherwise
+				# use default (if any)
+				my $idx_opt = (defined $opcomment && $opcomment ne q{}) ? $opcomment : join(q{,},@{$self->{index_options}});
 
         $sqlstr .=
             qq{create $optype $opname on } . $table->{name}
       . q{ (} . join(q{,},@{$colref}) . q{) }
-      . join(q{,},@{$self->{index_options}})
+      . $idx_opt
       . $self->{end_of_statement}
       . $self->{newline};
     }

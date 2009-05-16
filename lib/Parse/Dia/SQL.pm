@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.26 2009/04/14 12:07:17 aff Exp $
+# $Id: SQL.pm,v 1.27 2009/05/16 12:24:28 aff Exp $
 
 =pod
 
@@ -172,7 +172,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 METHODS
 
