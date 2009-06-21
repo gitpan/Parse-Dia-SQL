@@ -45,6 +45,10 @@ See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 
 =back
 
+=head1 DIA VERSIONS
+
+Parse::Dia::SQL has been tested with Dia versions 0.93 - 0.96.  Dia version 0.97 changed the way associations were stored, and support for this has been added as of Parse::Dia::SQL version 0.10_01.
+
 =head1 DATABASE SUPPORT
 
 The following databases are supported:
@@ -180,7 +184,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.10';
+our $VERSION = '0.10_01';
 
 =head1 METHODS
 
@@ -298,7 +302,7 @@ sub get_output_instance {
       qw(classes associations small_packages components files index_options);
 
   if ($self->{db} eq q{db2}) {
-	return Parse::Dia::SQL::Output::DB2->new(%param);
+  return Parse::Dia::SQL::Output::DB2->new(%param);
   } elsif ($self->{db} eq q{mysql-myisam}) {
     return Parse::Dia::SQL::Output::MySQL::MyISAM->new(%param);
   } elsif ($self->{db} eq q{mysql-innodb}) {
@@ -525,6 +529,42 @@ sub get_classes_ref {
 }
 
 
+# Check that the given object and version is supported.  Return true
+# on pass, undef on fail.
+sub _check_object_version {
+  my $self    = shift;
+  my $type    = shift;
+  my $version = int shift;    # can be zero, can have leading zeros
+  
+  if (!$type || !defined $version) {
+    $self->{log}->error(qq{Need 2 args: type and version});
+    return;
+  }
+
+  my %object_v = (
+                  "UML - Association"  => [1,2],
+                  "UML - Class"        => [0],
+                  "UML - Component"    => [0],
+                  "UML - Note"         => [0],
+                  "UML - SmallPackage" => [0],
+                 );
+
+  $self->{log}->debug(qq{type:'$type' version:$version});
+
+  if (!exists($object_v{$type})) {
+    $self->{log}->debug(qq{type:'$type' unknown});
+    return;
+  }
+
+  if (! grep(/^$version$/, @{$object_v{$type}})) {
+    $self->{log}->debug(qq{type:'$type' version:$version unsupported});
+    return;
+  }
+
+  return 1;
+}
+
+
 # Returns hashref where key is name of class and value is its content.
 sub _parse_classes {
   my $self    = shift;
@@ -545,8 +585,11 @@ sub _parse_classes {
 
       # sanity check -- a dia:object should be an element_node
       if ( $nodeType == ELEMENT_NODE ) {
-        my $nodeAttrType = $nodelist->item($i)->getAttribute('type');
-        my $nodeAttrId   = $nodelist->item($i)->getAttribute('id');
+        my $nodeAttrType    = $nodelist->item($i)->getAttribute('type');
+        my $nodeAttrId      = $nodelist->item($i)->getAttribute('id');
+        my $nodeAttrVersion = $nodelist->item($i)->getAttribute('version');
+
+        #$self->_check_object_version($nodeAttrType, $nodeAttrVersion);
 
         $self->{log}->debug("Node $i -- type=$nodeAttrType");
 
@@ -554,8 +597,10 @@ sub _parse_classes {
 
           # table or view create
           $self->{log}->debug("$nodeAttrId");
-          my $class = $self->_parse_class( $nodelist->item($i), [$fid, $nodeAttrId] );
-          push @{$self->{classes}}, $class;
+          my $class = $self->_parse_class( $nodelist->item($i), [$fid, $nodeAttrId, $nodeAttrVersion] );
+
+          # Push defined elements only
+          push @{$self->{classes}}, $class if $class;
 
           #$self->{log}->debug("get_class:". Dumper($class));
 
@@ -647,6 +692,14 @@ sub _parse_class {
   my $id    = shift; # it's a array ref..
 
   my $warns = 0;
+  my $version = $id->[2];
+
+  # Check that version is supported
+  if (!$self->_check_object_version('UML - Class', $version)) {
+    $self->{log}->error("Found unsupported version '$version' of UML Class");
+    return;
+  }
+
 
   # get the Class name
   my $className =
@@ -888,14 +941,18 @@ sub _parse_associations {
 
       # sanity check -- a dia:object should be an element_node
       if ( $nodeType == ELEMENT_NODE ) {
-        my $nodeAttrType = $nodelist->item($i)->getAttribute('type');
-        my $nodeAttrId   = $nodelist->item($i)->getAttribute('id');
-
+        my $nodeAttrType    = $nodelist->item($i)->getAttribute('type');
+        my $nodeAttrId      = $nodelist->item($i)->getAttribute('id');
+        my $nodeAttrVersion = $nodelist->item($i)->getAttribute('version');
 
         if ( $nodeAttrType eq 'UML - Association' ) {
-        $self->{log}->debug("Association Node $i -- type=$nodeAttrType id=$nodeAttrId");
-        # TODO: Check return value:
-        $self->_parse_association( $nodelist->item($i), [ $fid, $nodeAttrId ] )
+          $self->{log}->debug("Association Node $i -- type=$nodeAttrType id=$nodeAttrId version=$nodeAttrVersion");
+
+          # Note that version number is passed since there was a
+          # change in Dia 0.97
+
+          # TODO: Check return value:
+          $self->_parse_association( $nodelist->item($i), [ $fid, $nodeAttrId, $nodeAttrVersion ] )
         }
       }
 
@@ -908,6 +965,23 @@ sub _parse_associations {
 # Generate the foreign key relationship between two tables: classify
 # the relationship, and generate the necessary constraints and centre
 # (join) tables.
+#
+# Note that version number is passed as an argument (in '$id') since
+# there was a change in Dia 0.97.  This is implemented in dia source
+# file:
+#
+# objects/UML/association.c
+#
+#   /* Version 0 had no autorouting and so shouldn't have it set by default. */
+#   /* Version 1 was saving both ends separately without using StdProps */
+#   /* Version 2 uses StdProps */
+#
+# Note on misspelling of "multipicity"
+#  
+# http://mail.gnome.org/archives/dia-list/2009-March/msg00067.html
+# [Hans Breuer] "Sorry, typos in property names must stay forever to
+# not break backward compatibility with older diagrams."
+
 sub _parse_association {
   my $self        = shift;
   my $association = shift;
@@ -918,7 +992,14 @@ sub _parse_association {
   my ( %leftEnd, %rightEnd, $connectionNode, $leftConnectionHandle,
     $rightConnectionHandle );
 
-  $self->{log}->debug("Parsing UML Association file=[$id->[0]] id=$id->[1]");
+  my $version = $id->[2];
+  $self->{log}->debug("Parsing UML Association file=$id->[0] id=$id->[1] version=$version");
+
+  # Check that version is supported
+  if (!$self->_check_object_version('UML - Association', $version)) {
+    $self->{log}->error("Found unsupported version '$version' of UML Association");
+    return;
+  }
 
   $nodeList = $association->getElementsByTagName('dia:attribute');
 
@@ -929,26 +1010,56 @@ sub _parse_association {
     $currentNode  = $nodeList->item($i);
     $nodeAttrName = $currentNode->getAttribute('name');
 
-    if ( $nodeAttrName eq 'name' ) {
-      $assocName = $self->{utils}->get_string_from_node($currentNode);
-      $self->{log}->debug("Got association name=$assocName");
-    }
-    elsif ( $nodeAttrName eq 'direction' ) {
-      $assocDirection = $self->{utils}->get_num_from_node($currentNode);
-    }
-    elsif ( $nodeAttrName eq 'ends' ) {
+    $self->{log}->debug( "nodeAttrName:$nodeAttrName" );
 
-      # cycle through dia:composite entries looking for string role &
-      # numeric aggregate values get the attributes for this
-      # association -- each is a dia:composite
-      #
-      # there should only be one dia:composite within the association
+    # version 1 : Dia 0.96 or prior
+    if ($version == 1) {
 
-      my @tags = ( 'arole', '9aggregate', 'bclass_scope', 'amultiplicity' );
-      %leftEnd = $self->{utils}->get_node_attribute_values(
-        $association->getElementsByTagName('dia:composite')->item(0), @tags );
-      %rightEnd = $self->{utils}->get_node_attribute_values(
-        $association->getElementsByTagName('dia:composite')->item(1), @tags );
+      if ( $nodeAttrName eq 'name' ) {
+        $assocName = $self->{utils}->get_string_from_node($currentNode);
+        $self->{log}->debug("Got association name=$assocName");
+      } elsif ( $nodeAttrName eq 'direction' ) {
+        $assocDirection = $self->{utils}->get_num_from_node($currentNode);
+      } elsif ( $nodeAttrName eq 'ends' ) {
+        my @tags = ( 'arole', '9aggregate', 'bclass_scope', 'amultiplicity' );
+        %leftEnd = $self->{utils}->get_node_attribute_values(
+                                                             $association->getElementsByTagName('dia:composite')->item(0), @tags );
+        %rightEnd = $self->{utils}->get_node_attribute_values(
+                                                              $association->getElementsByTagName('dia:composite')->item(1), @tags );
+
+      } 
+    }
+
+    # version 2 : Dia 0.97 or later - Note (mis)spelling of 'multipicity':
+    elsif ( $version == 2) {
+
+      if ( $nodeAttrName eq 'name' ) {
+        $assocName = $self->{utils}->get_string_from_node($currentNode);
+        $self->{log}->debug("Got association name=$assocName");
+      } elsif ( $nodeAttrName eq 'direction' ) {
+        $assocDirection = $self->{utils}->get_num_from_node($currentNode);
+      } elsif ( $nodeAttrName eq 'role_a' ) {
+        $leftEnd{role} = $self->{utils}->get_string_from_node($currentNode);
+      } elsif ( $nodeAttrName eq 'role_b' ) {
+        $rightEnd{role} = $self->{utils}->get_string_from_node($currentNode);
+      } elsif ( $nodeAttrName eq 'aggregate_a' ) {
+        $leftEnd{aggregate} = $self->{utils}->get_string_from_node($currentNode);
+      } elsif ( $nodeAttrName eq 'aggregate_b' ) {
+        $rightEnd{aggregate} = $self->{utils}->get_string_from_node($currentNode);
+      } elsif ( $nodeAttrName eq 'class_scope_a' ) {
+        $leftEnd{class_scope} = $self->{utils}->get_string_from_node($currentNode);
+      } elsif ( $nodeAttrName eq 'class_scope_b' ) {
+        $rightEnd{class_scope} = $self->{utils}->get_string_from_node($currentNode);
+      } elsif ( $nodeAttrName =~ qr/^multip[l]icity_a$/ ) { ### Spelling !!!
+        # Accept both 'multipicity_a'and 'multiplicity_a' should it be fixed upstream
+        $leftEnd{multiplicity} = $self->{utils}->get_string_from_node($currentNode);
+      } elsif ( $nodeAttrName =~ qr/^multip[l]icity_a$/ ) { ### Spelling !!!
+        # Accept both 'multipicity_b'and 'multiplicity_b' should it be fixed upstream
+        $rightEnd{multiplicity} = $self->{utils}->get_string_from_node($currentNode);
+      }
+
+    } else {
+      $self->{log}->fatal("Unsupported UML Association version $version");
     }
 
     $i++;
@@ -988,18 +1099,23 @@ sub _parse_association {
     return;
   }
 
-  $self->{log}->debug(
-    "  * (UNUSED) direction=$assocDirection (aggregate determines many end)");
-  $self->{log}->debug( "  * leftEnd="
-      . $leftEnd{'role'} . " agg="
-      . $leftEnd{'aggregate'}
-      . " classId="
-      . $leftConnectionHandle );
-  $self->{log}->debug( "  * rightEnd="
-      . $rightEnd{'role'} . " agg="
-      . $rightEnd{'aggregate'}
-      . " classId="
-      . $rightConnectionHandle );
+  if ($self->{log}->is_debug()) {
+    $self->{log}->debug("leftEnd : ".Dumper(\%leftEnd));
+    $self->{log}->debug("rightEnd: ".Dumper(\%rightEnd));
+
+    $self->{log}->debug(
+                        "  * (UNUSED) direction=$assocDirection (aggregate determines many end)");
+    $self->{log}->debug( "  * leftEnd="
+                         . $leftEnd{'role'} . " agg="
+                         . $leftEnd{'aggregate'}
+                         . " classId="
+                         . $leftConnectionHandle );
+    $self->{log}->debug( "  * rightEnd="
+                         . $rightEnd{'role'} . " agg="
+                         . $rightEnd{'aggregate'}
+                         . " classId="
+                         . $rightConnectionHandle );
+  }
 
   my $leftMult  = $self->{utils}->classify_multiplicity( $leftEnd{'multiplicity'} );
   my $rightMult = $self->{utils}->classify_multiplicity( $rightEnd{'multiplicity'} );
@@ -1521,7 +1637,7 @@ sub generate_one_to_any_association {
   else {
     
     $self->{log}->warn( "No FK attibute in specified in $assocName");  
-	# TODO: Implement the below method:
+  # TODO: Implement the below method:
     #$fkEndKey = fkNamesFromAttList( $pkClassLookup->{name}, $pkAtts );
   }
   $fkAtts = $self->{utils}->attlist_from_names( $fkClassLookup, $fkEndKey );

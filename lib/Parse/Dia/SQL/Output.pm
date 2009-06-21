@@ -400,7 +400,7 @@ sub _check_components {
 # Return true if and only if
 #
 #  $self->{classes} should be a defined array ref with 1 or more
-#  elements
+#  elements, all of which must be defined
 #
 # otherwise false.
 sub _check_classes {
@@ -417,7 +417,12 @@ sub _check_classes {
     return;
   }
 
-    return 1;
+ 	if (grep(!defined($_), (@{ $self->{classes}}))) {
+		$self->{log}->warn(q{the classes array reference contains an undefined element!});
+		return;
+	}
+
+	return 1;
 }
 
 # Sanity check on internal state.

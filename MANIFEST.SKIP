@@ -26,10 +26,13 @@
 \.old$
 \#$
 \b\.#
+\.tmp$
 \.bak$
 \.new$
 \.sql$
 \.patch$
+\.log$
+\.log\.[0-9]+$
 
 # Avoid Devel::Cover files.
 \bcover_db\b

@@ -126,14 +126,9 @@ sub get_node_attribute_values {
   my ( $currentNode, $nodeAttrName, $i );
   my %return;
 
- # drTAE: hopefully Dia will never use this string as an actual value in its XML
- # document save format, 'cuz I'm using it as a special "undef/NULL" construct
-  my $emptyValueString =
-"__this_is_a_very_very_empty_STRING_value_that_i_hope_no-one_will_ever_use (it's like NULL or 'undef')__";
-  my $emptyValueNumber =
-"__this_is_a_very_very_empty_NUMERIC_value_that_i_hope_no-one_will_ever_use (it's like NULL or 'undef')__";
-  my $emptyValueBoolean =
-"__this_is_a_very_very_empty_BOOLEAN_value_that_i_hope_no-one_will_ever_use (it's like NULL or 'undef')__";
+  my $emptyValueString  = "__undef_string__";
+  my $emptyValueNumber  = "__undef_numeric__";
+  my $emptyValueBoolean = "__undef_boolean__";
 
   # initialise it to a bunch of empty values, this will also allow
   # us to know which attribute name values to parse out of the
@@ -172,6 +167,11 @@ sub get_node_attribute_values {
       $return{$nodeAttrName} = $self->get_bool_from_node($currentNode);
     }
   }
+
+	{
+		no warnings q{uninitialized};
+		$self->{log}->debug( "$nodeAttrName:" . $return{$nodeAttrName} );
+	} 
 
   # don't return some fake value for bits we didn't parse,
   # return undef which means it wasn't there
@@ -359,6 +359,7 @@ Look at a multiplicity descriptor and classify it as 'one' (1, or
 sub classify_multiplicity {
   my $self    = shift;
   my $multStr = shift;
+  return 'none'  if ( ! $multStr );
   $multStr =~ s/\s//g;
   my @mult = split( /\.\./, $multStr );
   return 'none'  if ( @mult == 0 );
