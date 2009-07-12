@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Utils;
 
-# $Id: Utils.pm,v 1.5 2009/04/03 05:35:17 aff Exp $
+# $Id: Utils.pm,v 1.7 2009/06/23 19:54:29 aff Exp $
 
 =pod
 
@@ -524,7 +524,7 @@ Check that a list of primary key attributes has types corresponding to
 the types in a list of foreign key attributes.
 
 Returns base type of some DMBS specific types (eg in PostgreSQL serial
-is int).
+is integer).
 
 =cut
 
@@ -535,8 +535,8 @@ sub get_base_type {
   if ( $db eq 'postgres' ) {
 
     # handle PostgreSQL database type
-    if ( $typeName eq 'serial' || $typeName eq 'SERIAL' ) {
-      return 'int';
+    if ( lc($typeName) eq 'serial' ) {
+      return 'integer';
     }
     return $typeName;
   }
@@ -840,6 +840,42 @@ sub add_default_fk {
     }
   }
   return $fkAtts;
+}
+
+
+# Check that the given object and version is supported.  Return true
+# on pass, undef on fail.
+sub _check_object_version {
+  my $self    = shift;
+  my $type    = shift;
+  my $version = int shift;    # can be zero, can have leading zeros
+  
+  if (!$type || !defined $version) {
+    $self->{log}->error(qq{Need 2 args: type and version});
+    return;
+  }
+
+  my %object_v = (
+                  "UML - Association"  => [1,2],
+                  "UML - Class"        => [0],
+                  "UML - Component"    => [0],
+                  "UML - Note"         => [0],
+                  "UML - SmallPackage" => [0],
+                 );
+
+  $self->{log}->debug(qq{type:'$type' version:$version});
+
+  if (!exists($object_v{$type})) {
+    $self->{log}->debug(qq{type:'$type' unknown});
+    return;
+  }
+
+  if (! grep(/^$version$/, @{$object_v{$type}})) {
+    $self->{log}->debug(qq{type:'$type' version:$version unsupported});
+    return;
+  }
+
+  return 1;
 }
 
 

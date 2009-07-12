@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.29 2009/05/16 18:02:51 aff Exp $
+# $Id: SQL.pm,v 1.31 2009/06/23 19:54:29 aff Exp $
 
 =pod
 
@@ -47,7 +47,11 @@ See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 
 =head1 DIA VERSIONS
 
-Parse::Dia::SQL has been tested with Dia versions 0.93 - 0.96.  Dia version 0.97 changed the way associations were stored, and support for this has been added as of Parse::Dia::SQL version 0.10_01.
+Parse::Dia::SQL has been tested with Dia versions 0.93 - 0.97.  
+
+Dia version 0.97 changed the way associations were stored, and support for this has been added as of Parse::Dia::SQL version 0.11.
+
+Parse::Dia::SQL uses the XML C<version> tag information in the I<.dia> input file to determine how each XML construct is formatted.  Future versions of Dia may change the internal format, and XML C<version> tag is used to detect such changes.
 
 =head1 DATABASE SUPPORT
 
@@ -184,7 +188,12 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.10_01';
+our $VERSION = '0.11';
+
+my $UML_ASSOCIATION  = 'UML - Association';
+my $UML_SMALLPACKAGE = 'UML - SmallPackage';
+my $UML_CLASS        = 'UML - Class';
+my $UML_COMPONENT    = 'UML - Component';
 
 =head1 METHODS
 
@@ -454,17 +463,25 @@ sub _parse_smallpackages {
 
     $self->{log}->debug( "nodelist length" . $nodelist->getLength );
 
+	NODE:
     for ( my $i = 0 ; $i < $nodelist->getLength ; $i++ ) {
       my $nodeType = $nodelist->item($i)->getNodeType;
 
       # sanity check -- a dia:object should be an element_node
       if ( $nodeType == ELEMENT_NODE ) {
-        my $nodeAttrType = $nodelist->item($i)->getAttribute('type');
-        my $nodeAttrId   = $nodelist->item($i)->getAttribute('id');
+        my $nodeAttrType    = $nodelist->item($i)->getAttribute('type');
+        my $nodeAttrId      = $nodelist->item($i)->getAttribute('id');
+        my $nodeAttrVersion = $nodelist->item($i)->getAttribute('version');
         $self->{log}
           ->debug("Node $i -- type=$nodeAttrType");
 
-        if ( $nodeAttrType eq 'UML - SmallPackage' ) {
+        if ( $nodeAttrType eq $UML_SMALLPACKAGE ) {
+
+					# Check that version is supported
+					if (!$self->{utils}->_check_object_version($UML_SMALLPACKAGE, $nodeAttrVersion)) {
+						$self->{log}->error("Found unsupported version '$nodeAttrVersion' of $UML_SMALLPACKAGE");
+						next NODE;
+					}
 
           # generic database statements
           $self->{log}->debug("call generateSmallPackageSQL");
@@ -501,8 +518,8 @@ sub _parse_smallpackage {
   my $packName = undef;
   for ( my $i = 0 ; $i < $nodelist->getLength ; $i++ ) {
     my $currentNode  = $nodelist->item($i);
-    my $nodeAttrName = $currentNode->getAttribute('name');
-    $self->{log}->debug("nodeAttrName:$nodeAttrName");
+    my $nodeAttrName    = $currentNode->getAttribute('name');
+    $self->{log}->debug("nodeAttrName   :$nodeAttrName");
 
     if ( $nodeAttrName eq 'stereotype' ) {
       $packName = $self->{utils}->get_string_from_node($currentNode);
@@ -529,41 +546,6 @@ sub get_classes_ref {
 }
 
 
-# Check that the given object and version is supported.  Return true
-# on pass, undef on fail.
-sub _check_object_version {
-  my $self    = shift;
-  my $type    = shift;
-  my $version = int shift;    # can be zero, can have leading zeros
-  
-  if (!$type || !defined $version) {
-    $self->{log}->error(qq{Need 2 args: type and version});
-    return;
-  }
-
-  my %object_v = (
-                  "UML - Association"  => [1,2],
-                  "UML - Class"        => [0],
-                  "UML - Component"    => [0],
-                  "UML - Note"         => [0],
-                  "UML - SmallPackage" => [0],
-                 );
-
-  $self->{log}->debug(qq{type:'$type' version:$version});
-
-  if (!exists($object_v{$type})) {
-    $self->{log}->debug(qq{type:'$type' unknown});
-    return;
-  }
-
-  if (! grep(/^$version$/, @{$object_v{$type}})) {
-    $self->{log}->debug(qq{type:'$type' version:$version unsupported});
-    return;
-  }
-
-  return 1;
-}
-
 
 # Returns hashref where key is name of class and value is its content.
 sub _parse_classes {
@@ -580,6 +562,7 @@ sub _parse_classes {
     $self->{log}
       ->debug("nodelist length " . $nodelist->getLength );
 
+	NODE:
     for ( my $i = 0 ; $nodelist && $i < $nodelist->getLength ; $i++ ) {
       my $nodeType = $nodelist->item($i)->getNodeType;
 
@@ -589,24 +572,35 @@ sub _parse_classes {
         my $nodeAttrId      = $nodelist->item($i)->getAttribute('id');
         my $nodeAttrVersion = $nodelist->item($i)->getAttribute('version');
 
-        #$self->_check_object_version($nodeAttrType, $nodeAttrVersion);
-
         $self->{log}->debug("Node $i -- type=$nodeAttrType");
 
-        if ( $nodeAttrType eq 'UML - Class' ) {
+        if ( $nodeAttrType eq $UML_CLASS ) {
+
+					# Check that version is supported
+					if (!$self->{utils}->_check_object_version($UML_CLASS, $nodeAttrVersion)) {
+						$self->{log}->error("Found unsupported version '$nodeAttrVersion' of UML Class");
+						next NODE;
+					}
+
 
           # table or view create
           $self->{log}->debug("$nodeAttrId");
           my $class = $self->_parse_class( $nodelist->item($i), [$fid, $nodeAttrId, $nodeAttrVersion] );
 
-          # Push defined elements only
-          push @{$self->{classes}}, $class if $class;
+          push @{$self->{classes}}, $class;
 
           #$self->{log}->debug("get_class:". Dumper($class));
 
         }
-        elsif ( $nodeAttrType eq 'UML - Component' ) {
+        elsif ( $nodeAttrType eq $UML_COMPONENT ) {
           #$self->{log}->debug("get_component");
+
+					# Check that version is supported
+					if (!$self->{utils}->_check_object_version($UML_COMPONENT, $nodeAttrVersion)) {
+						$self->{log}->error("Found unsupported version '$nodeAttrVersion' of $UML_COMPONENT");
+						next NODE;
+					}
+
 
           # insert statements - hash ref where table is key
           my $component = $self->_parse_component ($nodelist->item($i), [$i, $nodeAttrId]);
@@ -692,14 +686,6 @@ sub _parse_class {
   my $id    = shift; # it's a array ref..
 
   my $warns = 0;
-  my $version = $id->[2];
-
-  # Check that version is supported
-  if (!$self->_check_object_version('UML - Class', $version)) {
-    $self->{log}->error("Found unsupported version '$version' of UML Class");
-    return;
-  }
-
 
   # get the Class name
   my $className =
@@ -945,7 +931,7 @@ sub _parse_associations {
         my $nodeAttrId      = $nodelist->item($i)->getAttribute('id');
         my $nodeAttrVersion = $nodelist->item($i)->getAttribute('version');
 
-        if ( $nodeAttrType eq 'UML - Association' ) {
+        if ( $nodeAttrType eq $UML_ASSOCIATION ) {
           $self->{log}->debug("Association Node $i -- type=$nodeAttrType id=$nodeAttrId version=$nodeAttrVersion");
 
           # Note that version number is passed since there was a
@@ -996,8 +982,8 @@ sub _parse_association {
   $self->{log}->debug("Parsing UML Association file=$id->[0] id=$id->[1] version=$version");
 
   # Check that version is supported
-  if (!$self->_check_object_version('UML - Association', $version)) {
-    $self->{log}->error("Found unsupported version '$version' of UML Association");
+  if (!$self->{utils}->_check_object_version($UML_ASSOCIATION, $version)) {
+    $self->{log}->error("Found unsupported version '$version' of $UML_ASSOCIATION");
     return;
   }
 
@@ -1059,7 +1045,7 @@ sub _parse_association {
       }
 
     } else {
-      $self->{log}->fatal("Unsupported UML Association version $version");
+      $self->{log}->fatal("Unsupported $UML_ASSOCIATION version $version");
     }
 
     $i++;

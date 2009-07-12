@@ -1,4 +1,4 @@
-#   $Id:  $
+#   $Id: 502-get-associations_version_2.t,v 1.1 2009/06/21 13:24:37 aff Exp $
 
 use warnings;
 use strict;

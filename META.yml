@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Parse-Dia-SQL
-version:            0.10_01
+version:            0.11
 abstract:           Convert Dia class diagrams into SQL.
 author:
     - Andreas Faafeng <aff@cpan.org>
