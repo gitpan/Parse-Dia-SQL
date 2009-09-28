@@ -1,11 +1,15 @@
 Revision history for Perl module Parse::Dia::SQL.
 
-0.11 Tue Jun 23 21:57:28 CEST 2009
+0.11_01 Mon Sep 28 21:16:22 CEST 2009
+    - Ensure all indices are created before foreign key 
+      constraints (all db platforms, reported by Jeff Chimene)
+
+0.11 Sun Jul 12 21:25:38 CEST 2009 
     - Bug #47593 Default type for PSQL 'serial' should be 
       'integer' not 'int' (thanks to Mart van de Wege).
     - Added support for Dia 0.97 source files.  Added verions
       checks for each XML element containing it.
-    - First reported in bug #47040: Associations are 
+      First reported in bug #47040: Associations are 
       not generated in Dia 0.97
 
 0.10 Sat May 16 21:03:57 CEST 2009

@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.23 2009/06/21 13:24:37 aff Exp $
+# $Id: Output.pm,v 1.24 2009/09/28 19:12:06 aff Exp $
 
 =pod
 
@@ -603,11 +603,10 @@ sub get_permissions_create {
 
 # Create associations statements:
 #
-# This includes the following elements
+# This includes the following elements, in the following sequence
 #
+#   - index (unique and non-unique)
 #   - foreign key
-#   - index
-#   - unique index
 sub get_associations_create {
   my $self   = shift;
   my $sqlstr = '';
@@ -615,17 +614,17 @@ sub get_associations_create {
 	# Check both ass. (fk) and classes (index) before operating on the
 	# array refs.
 
-	# foreign keys
-	if ($self->_check_associations()) {
-		foreach my $object (@{ $self->{associations} }) {
-			$sqlstr .= $self->_get_create_association_sql($object);
-		}
-	}
-
 	# indices
 	if ($self->_check_classes()) {
 		foreach my $object (@{ $self->{classes} }) {
 			$sqlstr .= $self->_get_create_index_sql($object);
+		}
+	}
+
+	# foreign keys
+	if ($self->_check_associations()) {
+		foreach my $object (@{ $self->{associations} }) {
+			$sqlstr .= $self->_get_create_association_sql($object);
 		}
 	}
 

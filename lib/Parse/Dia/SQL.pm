@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.31 2009/06/23 19:54:29 aff Exp $
+# $Id: SQL.pm,v 1.32 2009/09/28 19:20:34 aff Exp $
 
 =pod
 
@@ -188,7 +188,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.11';
+our $VERSION = '0.11_01';
 
 my $UML_ASSOCIATION  = 'UML - Association';
 my $UML_SMALLPACKAGE = 'UML - SmallPackage';
