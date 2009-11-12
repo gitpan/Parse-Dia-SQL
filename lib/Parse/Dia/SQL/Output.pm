@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.24 2009/09/28 19:12:06 aff Exp $
+# $Id: Output.pm,v 1.25 2009/09/30 19:10:31 aff Exp $
 
 =pod
 
@@ -166,7 +166,7 @@ Return all sql.  The sequence of statements is as follows:
   permissions create
   inserts
   smallpackage post sql
-  associations create
+  associations create  (indices first, then foreign keys)
 
 =cut
 

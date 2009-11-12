@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.32 2009/09/28 19:20:34 aff Exp $
+# $Id: SQL.pm,v 1.37 2009/11/12 09:45:53 aff Exp $
 
 =pod
 
@@ -188,7 +188,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.11_01';
+our $VERSION = '0.12';
 
 my $UML_ASSOCIATION  = 'UML - Association';
 my $UML_SMALLPACKAGE = 'UML - SmallPackage';
@@ -463,7 +463,7 @@ sub _parse_smallpackages {
 
     $self->{log}->debug( "nodelist length" . $nodelist->getLength );
 
-	NODE:
+  NODE:
     for ( my $i = 0 ; $i < $nodelist->getLength ; $i++ ) {
       my $nodeType = $nodelist->item($i)->getNodeType;
 
@@ -477,11 +477,11 @@ sub _parse_smallpackages {
 
         if ( $nodeAttrType eq $UML_SMALLPACKAGE ) {
 
-					# Check that version is supported
-					if (!$self->{utils}->_check_object_version($UML_SMALLPACKAGE, $nodeAttrVersion)) {
-						$self->{log}->error("Found unsupported version '$nodeAttrVersion' of $UML_SMALLPACKAGE");
-						next NODE;
-					}
+          # Check that version is supported
+          if (!$self->{utils}->_check_object_version($UML_SMALLPACKAGE, $nodeAttrVersion)) {
+            $self->{log}->error("Found unsupported version '$nodeAttrVersion' of $UML_SMALLPACKAGE");
+            next NODE;
+          }
 
           # generic database statements
           $self->{log}->debug("call generateSmallPackageSQL");
@@ -562,7 +562,7 @@ sub _parse_classes {
     $self->{log}
       ->debug("nodelist length " . $nodelist->getLength );
 
-	NODE:
+  NODE:
     for ( my $i = 0 ; $nodelist && $i < $nodelist->getLength ; $i++ ) {
       my $nodeType = $nodelist->item($i)->getNodeType;
 
@@ -576,11 +576,11 @@ sub _parse_classes {
 
         if ( $nodeAttrType eq $UML_CLASS ) {
 
-					# Check that version is supported
-					if (!$self->{utils}->_check_object_version($UML_CLASS, $nodeAttrVersion)) {
-						$self->{log}->error("Found unsupported version '$nodeAttrVersion' of UML Class");
-						next NODE;
-					}
+          # Check that version is supported
+          if (!$self->{utils}->_check_object_version($UML_CLASS, $nodeAttrVersion)) {
+            $self->{log}->error("Found unsupported version '$nodeAttrVersion' of UML Class");
+            next NODE;
+          }
 
 
           # table or view create
@@ -595,11 +595,11 @@ sub _parse_classes {
         elsif ( $nodeAttrType eq $UML_COMPONENT ) {
           #$self->{log}->debug("get_component");
 
-					# Check that version is supported
-					if (!$self->{utils}->_check_object_version($UML_COMPONENT, $nodeAttrVersion)) {
-						$self->{log}->error("Found unsupported version '$nodeAttrVersion' of $UML_COMPONENT");
-						next NODE;
-					}
+          # Check that version is supported
+          if (!$self->{utils}->_check_object_version($UML_COMPONENT, $nodeAttrVersion)) {
+            $self->{log}->error("Found unsupported version '$nodeAttrVersion' of $UML_COMPONENT");
+            next NODE;
+          }
 
 
           # insert statements - hash ref where table is key
@@ -996,7 +996,7 @@ sub _parse_association {
     $currentNode  = $nodeList->item($i);
     $nodeAttrName = $currentNode->getAttribute('name');
 
-    $self->{log}->debug( "nodeAttrName:$nodeAttrName" );
+    $self->{log}->debug( "version:$version nodeAttrName:$nodeAttrName" );
 
     # version 1 : Dia 0.96 or prior
     if ($version == 1) {
@@ -1017,8 +1017,8 @@ sub _parse_association {
     }
 
     # version 2 : Dia 0.97 or later - Note (mis)spelling of 'multipicity':
-    elsif ( $version == 2) {
-
+    elsif ( $version == 2 ) {
+    $self->{log}->debug("version 2 : Dia 0.97 nodeAttrName:$nodeAttrName ") if $self->{log}->is_debug();
       if ( $nodeAttrName eq 'name' ) {
         $assocName = $self->{utils}->get_string_from_node($currentNode);
         $self->{log}->debug("Got association name=$assocName");
@@ -1036,11 +1036,9 @@ sub _parse_association {
         $leftEnd{class_scope} = $self->{utils}->get_string_from_node($currentNode);
       } elsif ( $nodeAttrName eq 'class_scope_b' ) {
         $rightEnd{class_scope} = $self->{utils}->get_string_from_node($currentNode);
-      } elsif ( $nodeAttrName =~ qr/^multip[l]icity_a$/ ) { ### Spelling !!!
-        # Accept both 'multipicity_a'and 'multiplicity_a' should it be fixed upstream
+      } elsif ( $nodeAttrName =~ qr/^multip[l]?icity_a$/ ) { ### Spelling !!!
         $leftEnd{multiplicity} = $self->{utils}->get_string_from_node($currentNode);
-      } elsif ( $nodeAttrName =~ qr/^multip[l]icity_a$/ ) { ### Spelling !!!
-        # Accept both 'multipicity_b'and 'multiplicity_b' should it be fixed upstream
+      } elsif ( $nodeAttrName =~ qr/^multip[l]?icity_b$/ ) { ### Spelling !!!
         $rightEnd{multiplicity} = $self->{utils}->get_string_from_node($currentNode);
       }
 
@@ -1085,7 +1083,11 @@ sub _parse_association {
     return;
   }
 
+  my $leftMult  = $self->{utils}->classify_multiplicity( $leftEnd{'multiplicity'} );
+  my $rightMult = $self->{utils}->classify_multiplicity( $rightEnd{'multiplicity'} );
+
   if ($self->{log}->is_debug()) {
+    no warnings 'uninitialized';
     $self->{log}->debug("leftEnd : ".Dumper(\%leftEnd));
     $self->{log}->debug("rightEnd: ".Dumper(\%rightEnd));
 
@@ -1101,10 +1103,11 @@ sub _parse_association {
                          . $rightEnd{'aggregate'}
                          . " classId="
                          . $rightConnectionHandle );
-  }
 
-  my $leftMult  = $self->{utils}->classify_multiplicity( $leftEnd{'multiplicity'} );
-  my $rightMult = $self->{utils}->classify_multiplicity( $rightEnd{'multiplicity'} );
+
+    $self->{log}->debug("leftMult  : $leftMult");
+    $self->{log}->debug("rightMult : $rightMult");
+  }
 
   # Get primary key end in one-to-n (incl 1-to-1) associations
   # The encoding for this is different between default ERD mode and UML mode
@@ -1176,6 +1179,9 @@ sub _parse_association {
     "Couldn't classify $leftClass->{name}:$rightClass->{name} to generate SQL: $leftMult:$rightMult");
     $ok = 0;
   }
+
+  $self->{log}->debug(
+    "Classified $leftClass->{name}:$rightClass->{name} to generate SQL: $leftMult:$rightMult") if $self->{log}->is_debug();
 
 #  $errors++ if ( !$ok );
 

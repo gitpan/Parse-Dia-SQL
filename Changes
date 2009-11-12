@@ -1,6 +1,8 @@
 Revision history for Perl module Parse::Dia::SQL.
 
-0.11_01 Mon Sep 28 21:16:22 CEST 2009
+0.12 Thu Nov 12 10:51:28 CET 2009 
+    - RT #51433 - Multipicity (sic) not handled correctly 
+      (reported by Edy Incoletti and Jeff Chimene)
     - Ensure all indices are created before foreign key 
       constraints (all db platforms, reported by Jeff Chimene)
 

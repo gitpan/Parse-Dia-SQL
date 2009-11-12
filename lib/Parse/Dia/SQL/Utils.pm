@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Utils;
 
-# $Id: Utils.pm,v 1.8 2009/07/12 19:27:37 aff Exp $
+# $Id: Utils.pm,v 1.9 2009/11/12 09:47:17 aff Exp $
 
 =pod
 
@@ -214,6 +214,8 @@ sub get_string_from_node {
       $retval = "";
     }
   }
+
+	return if !$retval; # Skip escaping if empty
 
   #	$retval =~ s/^#?(.*)#?$/$1/g;
   $retval =~ s/^#//;

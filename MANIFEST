@@ -18,7 +18,7 @@ lib/Parse/Dia/SQL/Output/SQLite3.pm
 lib/Parse/Dia/SQL/Output/Sybase.pm
 lib/Parse/Dia/SQL/Utils.pm
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 MANIFEST.SKIP
 README
 t/000-load.t
@@ -43,6 +43,7 @@ t/610-output-getinstance.t
 t/611-output-format-columns.t
 t/612-output-get-comment.t
 t/620-output-get-schema-create-col-comment.t
+t/620-output-get-schema-create-many-to-many.t
 t/620-output-get-schema-create.t
 t/621-output-get-create-table-sql.t
 t/622-output-get-create-view-sql.t
@@ -53,6 +54,8 @@ t/642-output-get-drop-associations-sql.t
 t/643-output-get-drop-permissions-sql.t
 t/644-output-mysql-get-drop-index-sql.t
 t/645-output-ingres-get-drop-index-sql.t
+t/650-output-get-create-associations-many-to-many-097.t
+t/650-output-get-create-associations-many-to-many.t
 t/650-output-get-create-associations.t
 t/651-output-get-create-associations-sybase.t
 t/652-output-get-create-associations-index-options.t
@@ -84,12 +87,15 @@ t/904-kwalitee.t
 t/905-strict.t
 t/906-cover.t
 t/907-test-explicit-plan.t
+t/950-rt51433.t
 t/data/association_dia_0_97.dia
 t/data/db2.pre.dupe.dia
 t/data/implicit_role.dia
 t/data/index.option.dia
 t/data/long_fk_name.dia
+t/data/many_to_many.097.dia
 t/data/many_to_many.dia
+t/data/rt51433.dia
 t/data/table.col.comment.dia
 t/data/TestERD.dia
 t/data/version.supported.dia
