@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Utils;
 
-# $Id: Utils.pm,v 1.9 2009/11/12 09:47:17 aff Exp $
+# $Id: Utils.pm,v 1.10 2009/11/17 11:26:56 aff Exp $
 
 =pod
 
@@ -516,7 +516,6 @@ sub check_att_list_types {
     }
   }
 
-  # if $opt_M is set, then $mismatches == 0 anyway
   return $mismatches == 0;
 }
 
@@ -528,6 +527,8 @@ the types in a list of foreign key attributes.
 Returns base type of some DMBS specific types (eg in PostgreSQL serial
 is integer).
 
+AFF note:  This is better implemented in each sql formatter class.
+
 =cut
 
 sub get_base_type {
@@ -537,9 +538,19 @@ sub get_base_type {
   if ( $db eq 'postgres' ) {
 
     # handle PostgreSQL database type
-    if ( lc($typeName) eq 'serial' ) {
+    if ( lc($typeName) eq 'serial' or lc($typeName) eq 'int4' ) {
+			$self->{log}->info(qq{Replaced $typeName with integer}) if $self->{log}->is_info();
       return 'integer';
     }
+    if ( lc($typeName) eq 'int2' ) {
+			$self->{log}->info(qq{Replaced $typeName with smallint}) if $self->{log}->is_info();
+      return 'smallint';
+    }
+    if ( lc($typeName) eq 'int8' ) {
+			$self->{log}->info(qq{Replaced $typeName with bigint}) if $self->{log}->is_info();
+      return 'bigint';
+    }
+
     return $typeName;
   }
   elsif ( $db eq 'templateDBMStype' ) {

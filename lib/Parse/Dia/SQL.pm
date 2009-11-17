@@ -188,7 +188,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.12';
+our $VERSION = '0.12_01';
 
 my $UML_ASSOCIATION  = 'UML - Association';
 my $UML_SMALLPACKAGE = 'UML - SmallPackage';
@@ -235,6 +235,7 @@ sub new {
     output         => undef,
     index_options  => $param{index_options} || [],
     diaversion  => $param{diaversion} || undef,
+    ignore_type_mismatch  => $param{ignore_type_mismatch} || undef,
     converted   => 0,
   };
 
@@ -1659,20 +1660,22 @@ sub generate_one_to_any_association {
     return;
   }
 
-  # TODO: Add support for opt_M (ignore type mismatch)
-  if (
-    !$self->{utils}->check_att_list_types(
-      $assocName, $pkClassLookup, $fkClassLookup,
-      $pkAtts,    $fkAtts,        $self->{db}
-    )
-    )
-  {
-    my $pkNames = $self->{utils}->names_from_attlist($pkAtts);
-    my $fkNames = $self->{utils}->names_from_attlist($fkAtts);
-    $self->{log}
-      ->warn( "Types of ($pkNames) don't match ($fkNames)" . " in $assocName");
-    return;
-  }
+  # Check ignore type mismatch flag
+	if (!$self->{ignore_type_mismatch}) {
+		if (
+			!$self->{utils}->check_att_list_types(
+				$assocName, $pkClassLookup, $fkClassLookup,
+				$pkAtts,    $fkAtts,        $self->{db}
+			)
+			)
+		{
+			my $pkNames = $self->{utils}->names_from_attlist($pkAtts);
+			my $fkNames = $self->{utils}->names_from_attlist($fkAtts);
+			$self->{log}
+				->warn( "Types of ($pkNames) don't match ($fkNames)" . " in $assocName");
+			return;
+		}
+	}
 
   # Use the user-supplied FK constraint name; otherwise generate one
   my $fkName =
