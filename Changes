@@ -1,5 +1,15 @@
 Revision history for Perl module Parse::Dia::SQL.
 
+0.12_02 Fri Dec 18 07:58:13 CET 2009
+    - RT #52755 - Add support for Postgres unique constraints
+      using the smallpackage stereotype (reported by shemgp).
+    - RT #50906 - Added PostgreSQL synonyms int2, int4, int8 to
+      integer, smallint and bigint respectively (reported by Edy
+      Incoletti.
+    - Added ignore_type_mismatch option which allows foreign keys
+      to have a different + type than the primary key it
+      references
+
 0.12 Thu Nov 12 10:51:28 CET 2009 
     - RT #51433 - Multipicity (sic) not handled correctly 
       (reported by Edy Incoletti and Jeff Chimene)

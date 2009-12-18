@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: parsediasql,v 1.7 2009/02/27 14:04:00 aff Exp $
+# $Id: parsediasql,v 1.8 2009/11/17 12:21:25 aff Exp $
 
 use strict;
 use warnings;
@@ -13,18 +13,20 @@ use Parse::Dia::SQL;
 
 my $help = undef;
 my $file = undef;
+my $ignore_type_mismatch = undef;
 my $db   = undef;
 
 GetOptions(
   "help|?" => \$help,
   "file=s" => \$file,
   "db=s"   => \$db,
+	"ignore_type_mismatch" => \$ignore_type_mismatch, 
 ) or pod2usage(2);
 pod2usage(1) if $help;
 pod2usage(qq{Missing argument 'file'}) if !$file;
 pod2usage(qq{Missing argument 'db'}) if !$db;
 
-my $dia = Parse::Dia::SQL->new(file => $file, db => $db);
+my $dia = Parse::Dia::SQL->new(file => $file, db => $db, ignore_type_mismatch => $ignore_type_mismatch);
 print $dia->get_sql();
 
 __END__
@@ -43,6 +45,8 @@ __END__
 
   file -  filename of Dia file
   db   -  Database type (e.g. 'db2')
+  ignore_type_mismatch - Allows foreign keys to have a different 
+          type than the primary key it references, if true.
 
 =head1 DESCRIPTION
 

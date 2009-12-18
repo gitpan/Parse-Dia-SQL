@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.25 2009/09/30 19:10:31 aff Exp $
+# $Id: Output.pm,v 1.26 2009/12/18 07:04:04 aff Exp $
 
 =pod
 
@@ -779,6 +779,7 @@ sub _get_create_table_sql {
     . $self->{newline}
     . $self->{indent}
     . join($self->{newline}, @columns)
+    . $self->get_smallpackage_column_sql($table->{name})
     . $self->{newline} . ")"
     . $self->{indent}
     . join(
@@ -998,7 +999,7 @@ sub _get_create_index_sql {
 # for the parsed small packages that matches both db name and the
 # given keyword (e.g. 'post').
 sub _get_smallpackage_sql {
-  my ($self, $keyword) = @_;
+  my ($self, $keyword, $table_name) = @_;
 
   my @statements = ();
   return unless $self->_check_small_packages();
@@ -1007,7 +1008,14 @@ sub _get_smallpackage_sql {
   foreach my $sp ( @{ $self->{small_packages} } ) {
     # Foreach key in hash, pick those values whose
     # keys that contains db name and 'keyword':
-    push @statements, map { $sp->{$_} } grep( /$self->{db}.*:\s*$keyword/, keys %{$sp} );
+    if ( $table_name )
+    {
+      push @statements, map { $sp->{$_} } grep( /$self->{db}.*:\s*$keyword\s*\($table_name\)/, keys %{$sp} );
+    }
+    else
+    {
+      push @statements, map { $sp->{$_} } grep( /$self->{db}.*:\s*$keyword/, keys %{$sp} );
+    }
   }
   return join($self->{newline}, @statements);
 
@@ -1041,7 +1049,20 @@ sub get_smallpackage_pk_sql  {
 # SQL clauses to add at the end of the named table column definitions
 sub get_smallpackage_column_sql  {
   my $self = shift;
-  return $self->{log}->logdie("NOTIMPL");
+  my ($table_name) = @_;
+
+  my $clause = $self->_get_smallpackage_sql(q{columns}, $table_name);
+
+  if ( $clause ne '' )
+  {
+    $clause =~ s/\n(.*?)/\n$self->{indent}$1/g;
+    $clause = ','
+      . $self->{newline}
+      . $self->{indent}
+      . $clause;
+    return $clause;
+  }
+  return '';
 }
 
 # SQL clauses to add at the end of the named table index definitions

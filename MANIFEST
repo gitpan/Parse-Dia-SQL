@@ -88,6 +88,7 @@ t/905-strict.t
 t/906-cover.t
 t/907-test-explicit-plan.t
 t/950-rt51433.t
+t/952-rt52755.t
 t/data/association_dia_0_97.dia
 t/data/db2.pre.dupe.dia
 t/data/implicit_role.dia
@@ -96,6 +97,7 @@ t/data/long_fk_name.dia
 t/data/many_to_many.097.dia
 t/data/many_to_many.dia
 t/data/rt51433.dia
+t/data/rt52755.dia
 t/data/table.col.comment.dia
 t/data/TestERD.dia
 t/data/version.supported.dia
