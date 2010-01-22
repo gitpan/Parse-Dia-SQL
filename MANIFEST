@@ -35,6 +35,7 @@ t/208-parse-classes-ops.t
 t/210-check-versions.t
 t/211-parse-versions.t
 t/300-parse-classes-many-to-many.t
+t/400-parse-typemap.t
 t/500-get-associations.t
 t/501-get-associations-implicit.t
 t/502-get-associations_version_2.t
@@ -77,6 +78,8 @@ t/690-output-sqlite3-get-sql.t
 t/700-utils-load.t
 t/701-utils-mangle-name.t
 t/702-utils-make-name.t
+t/703-utils-get-base-name.t
+t/704-utils-split-type.t
 t/710-const-load.t
 t/720-logger-load.t
 t/900-boilerplate.t
@@ -88,7 +91,9 @@ t/905-strict.t
 t/906-cover.t
 t/907-test-explicit-plan.t
 t/950-rt51433.t
+t/951-rt50906.t
 t/952-rt52755.t
+t/953-rt53783.t
 t/data/association_dia_0_97.dia
 t/data/db2.pre.dupe.dia
 t/data/implicit_role.dia
@@ -96,8 +101,10 @@ t/data/index.option.dia
 t/data/long_fk_name.dia
 t/data/many_to_many.097.dia
 t/data/many_to_many.dia
+t/data/rt50906.dia
 t/data/rt51433.dia
 t/data/rt52755.dia
+t/data/rt53783.dia
 t/data/table.col.comment.dia
 t/data/TestERD.dia
 t/data/version.supported.dia

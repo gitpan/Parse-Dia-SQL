@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.40 2009/12/20 12:02:27 aff Exp $
+# $Id: SQL.pm,v 1.46 2010/01/22 21:51:28 aff Exp $
 
 =pod
 
@@ -43,11 +43,13 @@ See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 
 =item * Index options are supported.  Text is taken from the I<comments> field of the I<operation>, i.e. the index.  A database specific default value is used if the I<comments> field is left blank.  Consult the Output sub class' constructor.
 
+=item * Type mapping is supported as of version 0.13_01. Unlike I<tedia2sql> the type mapping is non-recursive.
+
 =back
 
 =head1 DIA VERSIONS
 
-Parse::Dia::SQL has been tested with Dia versions 0.93 - 0.97.  
+Parse::Dia::SQL has been tested with Dia versions 0.93 - 0.97.
 
 Dia version 0.97 changed the way associations were stored, and support for this has been added as of Parse::Dia::SQL version 0.11.
 
@@ -188,7 +190,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.13';
+our $VERSION = '0.13_01';
 
 my $UML_ASSOCIATION  = 'UML - Association';
 my $UML_SMALLPACKAGE = 'UML - SmallPackage';
@@ -232,6 +234,7 @@ sub new {
     classes     => [],
     components     => [],                           # insert statements
     small_packages => [],
+    typemap        => {},
     output         => undef,
     index_options  => $param{index_options} || [],
     diaversion  => $param{diaversion} || undef,
@@ -292,6 +295,8 @@ sub _init_utils {
 #   small_packages
 #   components
 #   files
+#   index_options
+#   typemap
 #
 # Returns undef if convert flag is false (to prevent output before
 # conversion).
@@ -309,7 +314,7 @@ sub get_output_instance {
   # Add some args to param unless they are set by caller
   %param =
     map { $param{$_} = $self->{$_} unless exists($param{$_}); $_ => $param{$_} }
-      qw(classes associations small_packages components files index_options);
+      qw(classes associations small_packages components files index_options typemap);
 
   if ($self->{db} eq q{db2}) {
   return Parse::Dia::SQL::Output::DB2->new(%param);
@@ -449,6 +454,7 @@ sub get_smallpackages_ref {
 }
 
 # Go through nodelists and return number of 'SmallPackages' found
+# Extract typemap information if any to $self->{typemap}.
 sub _parse_smallpackages {
   my $self   = shift;
   my @retarr = ();      # array of hashrefs to return
@@ -473,37 +479,89 @@ sub _parse_smallpackages {
         my $nodeAttrType    = $nodelist->item($i)->getAttribute('type');
         my $nodeAttrId      = $nodelist->item($i)->getAttribute('id');
         my $nodeAttrVersion = $nodelist->item($i)->getAttribute('version');
-        $self->{log}
-          ->debug("Node $i -- type=$nodeAttrType");
+        $self->{log}->debug("Node $i -- type=$nodeAttrType");
 
         if ( $nodeAttrType eq $UML_SMALLPACKAGE ) {
 
           # Check that version is supported
-          if (!$self->{utils}->_check_object_version($UML_SMALLPACKAGE, $nodeAttrVersion)) {
-            $self->{log}->error("Found unsupported version '$nodeAttrVersion' of $UML_SMALLPACKAGE");
+          if ( !$self->{utils}
+            ->_check_object_version( $UML_SMALLPACKAGE, $nodeAttrVersion ) )
+          {
+            $self->{log}->error(
+"Found unsupported version '$nodeAttrVersion' of $UML_SMALLPACKAGE"
+            );
             next NODE;
           }
 
           # generic database statements
-          $self->{log}->debug("call generateSmallPackageSQL");
+          $self->{log}->debug("call _parse_smallpackage");
           my $href =
             $self->_parse_smallpackage( $nodelist->item($i), $nodeAttrId );
 
           $self->{log}->debug( "_parse_smallpackage returned " . Dumper($href) );
-          push @{$self->{small_packages}}, $href;
-        }
+          push @{ $self->{small_packages} }, $href;
 
+          # Custom handling of typemap, if any
+					$self->{typemap} = $self->_parse_typemap( $href );
+        }
       }
     }
   }
+
   # Return number of small_packages - undef if none
-  if (defined($self->{small_packages})
-    && ref($self->{small_packages}) eq 'ARRAY')
+  if ( defined( $self->{small_packages} )
+    && ref( $self->{small_packages} ) eq 'ARRAY' )
   {
-    return scalar(@{ $self->{small_packages} });
-  } else {
+    return scalar( @{ $self->{small_packages} } );
+  }
+  else {
     return;
   }
+}
+
+# Parse _smallpackage hashref and set global hash typemap.
+# Returns the parsed typemap hashref.
+# Does not check for duplicate definitions.
+sub _parse_typemap {
+  my $self         = shift;
+  my $href         = shift;
+  my $typemap_href = {};
+
+  # Custom handling of typemap, if any
+  foreach my $key ( keys %{$href} ) {
+
+    # skip elements not containing typemap keyword
+    next if ( $key !~ /^(.*):typemap/ );
+
+    my $typemap_db = $1;
+    my $typemap_str = $href->{$key};
+    $self->{log}->debug(qq{Found typemap for database $typemap_db});
+
+  TYPEMAPDEF:
+    foreach my $def ( split( /;/, $typemap_str ) ) {
+      my @defDefined = split /:/, $def;
+      $self->{log}->debug( q{defDefined :} . Dumper( \@defDefined ) );
+      if ( scalar(@defDefined) != 2
+        || !$defDefined[0]
+        || !$defDefined[1] )
+      {
+        $self->{log}->warn("Malformed typemap: $def");
+        next TYPEMAPDEF;
+      }
+
+      # remove leading and trailing whitespace
+      $defDefined[0] =~ s/^\s*(\S+)\s*$/$1/;
+      $defDefined[1] =~ s/^\s*(\S+)\s*$/$1/;
+
+			my @typearr = $self->{utils}->split_type($defDefined[1]);
+
+      # Set typemap key-value for given db type
+      $typemap_href->{$typemap_db}->{ $defDefined[0] } = \@typearr;
+    }
+  }
+  $self->{log}->debug( q{typemap :} . Dumper( $typemap_href ) );
+
+  return $typemap_href;
 }
 
 # Returns hashref where key is name of SmallPackage and value is its
@@ -964,7 +1022,7 @@ sub _parse_associations {
 #   /* Version 2 uses StdProps */
 #
 # Note on misspelling of "multipicity"
-#  
+#
 # http://mail.gnome.org/archives/dia-list/2009-March/msg00067.html
 # [Hans Breuer] "Sorry, typos in property names must stay forever to
 # not break backward compatibility with older diagrams."
@@ -1014,7 +1072,7 @@ sub _parse_association {
         %rightEnd = $self->{utils}->get_node_attribute_values(
                                                               $association->getElementsByTagName('dia:composite')->item(1), @tags );
 
-      } 
+      }
     }
 
     # version 2 : Dia 0.97 or later - Note (mis)spelling of 'multipicity':
@@ -1628,8 +1686,8 @@ sub generate_one_to_any_association {
     $fkEndKey =~ s/\s//g;
   }
   else {
-    
-    $self->{log}->warn( "No FK attibute in specified in $assocName");  
+
+    $self->{log}->warn( "No FK attibute in specified in $assocName");
   # TODO: Implement the below method:
     #$fkEndKey = fkNamesFromAttList( $pkClassLookup->{name}, $pkAtts );
   }
@@ -1661,24 +1719,24 @@ sub generate_one_to_any_association {
   }
 
   # Check ignore type mismatch flag
-	if (!$self->{ignore_type_mismatch}) {
-		if (
-			!$self->{utils}->check_att_list_types(
-				$assocName, $pkClassLookup, $fkClassLookup,
-				$pkAtts,    $fkAtts,        $self->{db}
-			)
-			)
-		{
-			my $pkNames = $self->{utils}->names_from_attlist($pkAtts);
-			my $fkNames = $self->{utils}->names_from_attlist($fkAtts);
-			$self->{log}
-				->warn( "Types of ($pkNames) don't match ($fkNames)" . " in $assocName");
-			return;
-		}
-	} else {
-		# Issue warning that ignore flag is set
-		$self->{log}->warn( "Ignoring type mismatch if any");
-	}
+  if (!$self->{ignore_type_mismatch}) {
+    if (
+      !$self->{utils}->check_att_list_types(
+        $assocName, $pkClassLookup, $fkClassLookup,
+        $pkAtts,    $fkAtts,        $self->{db}
+      )
+      )
+    {
+      my $pkNames = $self->{utils}->names_from_attlist($pkAtts);
+      my $fkNames = $self->{utils}->names_from_attlist($fkAtts);
+      $self->{log}
+        ->warn( "Types of ($pkNames) don't match ($fkNames)" . " in $assocName");
+      return;
+    }
+  } else {
+    # Issue warning that ignore flag is set
+    $self->{log}->warn( "Ignoring type mismatch if any");
+  }
 
   # Use the user-supplied FK constraint name; otherwise generate one
   my $fkName =

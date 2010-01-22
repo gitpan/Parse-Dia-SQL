@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Utils;
 
-# $Id: Utils.pm,v 1.10 2009/11/17 11:26:56 aff Exp $
+# $Id: Utils.pm,v 1.11 2010/01/22 19:07:18 aff Exp $
 
 =pod
 
@@ -891,6 +891,29 @@ sub _check_object_version {
   return 1;
 }
 
+# Split a type definition 'type(nn)' into 'type', '(nn)'
+sub split_type {
+	my $self = shift;
+	my $type = shift;
+
+	if(!$type) {
+		$self->{log}->warn("Missing type");
+		return;
+	}
+
+	$type =~ m/^([^(]*)(\([^)]+\))?$/;
+	my ($name, $size) = ($1, $2);
+	if(!$name) {
+		$self->{log}->warn("Malformed type name $type");
+		return;
+	}
+
+	if ($size) {
+		return ($name,$size);
+	} else {
+		return ($name);
+	}
+}
 
 # =head2 parseExtras
 

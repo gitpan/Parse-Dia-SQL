@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.26 2009/12/18 07:04:04 aff Exp $
+# $Id: Output.pm,v 1.29 2010/01/22 21:44:36 aff Exp $
 
 =pod
 
@@ -84,6 +84,7 @@ sub new {
     classes        => $param{classes}        || [],    # tables and views
     components     => $param{components}     || [],    # insert statements
     small_packages => $param{small_packages} || [],
+    typemap        => $param{typemap}        || {},    # custom type mapping 
 
     # references to components
     log   => undef,
@@ -257,11 +258,11 @@ sub get_inserts {
 #
 # This sub is split into two parts to make it easy sub subclass either.
 sub get_constraints_drop {
-  my $self   = shift;
+  my $self = shift;
 
-  return
-        $self->_get_fk_drop() .
-        $self->_get_index_drop();
+  # Allow undefined values
+  no warnings q[uninitialized];
+  return $self->_get_fk_drop() . $self->_get_index_drop();
 }
 
 # Drop all foreign keys
@@ -652,7 +653,7 @@ sub get_view_create {
   my $self   = shift;
   my $sqlstr = '';
 
-    return unless $self->_check_classes();
+	return unless $self->_check_classes();
 
  VIEW:
   foreach my $object (@{ $self->{classes} }) {
@@ -737,6 +738,29 @@ sub _get_create_table_sql {
 
     # Prefix non-empty comments with the comment character
     $col_com = $self->{sql_comment} . qq{ $col_com} if $col_com;
+
+		if (!$self->{typemap}) {
+			$self->{log}->debug("no typemap!");
+		}
+
+		if (!exists( $self->{typemap}->{ $self->{db} })) {
+			$self->{log}->debug("no typemap for " . $self->{db});
+
+		}
+
+		# typemap replace
+		$col_type = $self->map_user_type($col_type);
+
+#     if (
+#          $self->{typemap}
+#       && exists( $self->{typemap}->{ $self->{db} } )
+#       && exists( $self->{typemap}->{ $self->{db} }->{$col_type} )
+#       )
+#     {
+#       $self->{log}->debug("typemap col_type old : $col_type ");
+#       $col_type = $self->{typemap}->{ $self->{db} }->{$col_type};
+#       $self->{log}->debug("typemap col_type new : $col_type ");
+#     }
 
     $self->{log}->debug( "column after : "
         . join( q{,}, $col_name, $col_type, $col_val, $col_com ) );
@@ -1071,12 +1095,6 @@ sub get_smallpackage_index_sql  {
   return $self->{log}->logdie("NOTIMPL");
 }
 
-# User-to-SQL type mappings for the databases
-sub get_smallpackage_typemap_sql  {
-  my $self = shift;
-  return $self->{log}->logdie("NOTIMPL");
-}
-
 # store macro for generating statements BEFORE generated code
 sub get_smallpackage_macropre_sql  {
   my $self = shift;
@@ -1087,6 +1105,49 @@ sub get_smallpackage_macropost_sql  {
   my $self = shift;
   return $self->{log}->logdie("NOTIMPL");
 }
+
+
+# typemap replace
+sub map_user_type {
+  my ( $self, $col_type ) = @_;
+
+  return $col_type if !$self->{typemap};
+  return $col_type if !exists( $self->{typemap}->{ $self->{db} } );
+
+  #$self->{log}->debug("typemap: " . Dumper($self->{typemap}));
+
+  my ( $orgname, $orgsize ) = $self->{utils}->split_type($col_type);
+
+  #return $col_type if !exists( $self->{typemap}->{ $self->{db} }->{$orgname} );
+
+  if ( exists( $self->{typemap}->{ $self->{db} }->{$orgname} ) ) {
+
+    my $arref = $self->{typemap}->{ $self->{db} }->{$orgname};
+
+    no warnings q[uninitialized];
+    my ( $newname, $newsize ) = @$arref;
+
+    #$self->{log}->debug("typemap arref match: " . Dumper($arref));
+
+    # return newname + newsize if orgsize is undef
+    return $newname . $newsize if !$orgsize;
+
+    # return newname + newsize if orgsize equals newsize
+    return $newname . $newsize if $orgsize eq $newsize;
+
+    # return newname + orgsize if newsize is undef
+    return $newname . $orgsize if !$newsize;
+
+    # else error
+    $self->{log}
+      ->error( qq[Error in typemap usage: Cannot map from $col_type to $newname]
+        . $newsize );
+  }
+
+  # Return the original type is we can't find a typemap replacement
+  return $col_type;
+}
+
 
 1;
 
