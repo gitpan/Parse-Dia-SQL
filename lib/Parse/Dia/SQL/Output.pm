@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.29 2010/01/22 21:44:36 aff Exp $
+# $Id: Output.pm,v 1.30 2010/02/01 20:45:40 aff Exp $
 
 =pod
 
@@ -143,6 +143,13 @@ sub _get_comment {
     [ $files_word,     join(q{, }, @{ $self->{files} }) ],
     [ q{Generated at}, scalar localtime() ],
   );
+
+	# Add typemap for given database
+ 	my $typemap_str = "not found in input file";
+	if (exists( $self->{typemap}->{ $self->{db} })) {
+ 		$typemap_str = "found in input file";
+ 	}
+ 	push @arr, ["Typemap for " . $self->{db}, $typemap_str]; 
 
   # Add the sql_comment to first sub-element of all elements
   @arr = map { $_->[0] = $self->{sql_comment}. $_->[0]; $_ } @arr;
@@ -740,27 +747,15 @@ sub _get_create_table_sql {
     $col_com = $self->{sql_comment} . qq{ $col_com} if $col_com;
 
 		if (!$self->{typemap}) {
-			$self->{log}->debug("no typemap!");
+			$self->{log}->debug("no typemap");
 		}
 
-		if (!exists( $self->{typemap}->{ $self->{db} })) {
+		if (exists( $self->{typemap}->{ $self->{db} })) {
+			# typemap replace
+			$col_type = $self->map_user_type($col_type);
+		} else {
 			$self->{log}->debug("no typemap for " . $self->{db});
-
 		}
-
-		# typemap replace
-		$col_type = $self->map_user_type($col_type);
-
-#     if (
-#          $self->{typemap}
-#       && exists( $self->{typemap}->{ $self->{db} } )
-#       && exists( $self->{typemap}->{ $self->{db} }->{$col_type} )
-#       )
-#     {
-#       $self->{log}->debug("typemap col_type old : $col_type ");
-#       $col_type = $self->{typemap}->{ $self->{db} }->{$col_type};
-#       $self->{log}->debug("typemap col_type new : $col_type ");
-#     }
 
     $self->{log}->debug( "column after : "
         . join( q{,}, $col_name, $col_type, $col_val, $col_com ) );

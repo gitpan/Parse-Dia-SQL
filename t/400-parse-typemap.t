@@ -1,4 +1,4 @@
-#   $Id: 400-parse-typemap.t,v 1.3 2010/01/22 21:35:46 aff Exp $
+#   $Id: 400-parse-typemap.t,v 1.4 2010/02/01 20:45:40 aff Exp $
 
 use warnings;
 use strict;
@@ -23,19 +23,19 @@ can_ok($diasql, q{_parse_typemap});
 
 
 my $typemap_hr_input = {
-   'postgresql:typemap' => 'UUID: uuid; string: varchar; TIMESTAMP: timestamp(3);',
-	 'sqlite:typemap' => 'UUID: text(36);
+   'postgres:typemap' => 'UUID: uuid; string: varchar; TIMESTAMP: timestamp(3);',
+	 'sqlite3:typemap' => 'UUID: text(36);
 string: text;
 TIMESTAMP: text(14);'
 };
 
 my $typemap_hr_output =   {
-    'postgresql' => {
+    'postgres' => {
       'string'    => ['varchar'],
       'UUID'      => ['uuid'],
       'TIMESTAMP' => ['timestamp', '(3)'],
     },
-    'sqlite' => {
+    'sqlite3' => {
       'string'    => ['text'],
       'UUID'      => ['text','(36)'],
       'TIMESTAMP' => ['text','(14)'],

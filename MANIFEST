@@ -93,7 +93,8 @@ t/907-test-explicit-plan.t
 t/950-rt51433.t
 t/951-rt50906.t
 t/952-rt52755.t
-t/953-rt53783.t
+t/953-rt53783-postgres.t
+t/953-rt53783-sqlite3.t
 t/data/association_dia_0_97.dia
 t/data/db2.pre.dupe.dia
 t/data/implicit_role.dia

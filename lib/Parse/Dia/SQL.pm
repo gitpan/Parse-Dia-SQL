@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.46 2010/01/22 21:51:28 aff Exp $
+# $Id: SQL.pm,v 1.47 2010/02/01 20:45:40 aff Exp $
 
 =pod
 
@@ -190,7 +190,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.13_01';
+our $VERSION = '0.13_02';
 
 my $UML_ASSOCIATION  = 'UML - Association';
 my $UML_SMALLPACKAGE = 'UML - SmallPackage';
@@ -502,7 +502,12 @@ sub _parse_smallpackages {
           push @{ $self->{small_packages} }, $href;
 
           # Custom handling of typemap, if any
-					$self->{typemap} = $self->_parse_typemap( $href );
+					$self->{log}->debug("typemap before: " . Dumper($self->{typemap}));
+ 					my $typemap = $self->_parse_typemap( $href );
+					foreach my $key ( keys %{$typemap} ) {
+						$self->{typemap}->{$key} = $typemap->{$key};
+					}
+					$self->{log}->debug("typemap after: " . Dumper($self->{typemap}));
         }
       }
     }
@@ -528,12 +533,22 @@ sub _parse_typemap {
   my $typemap_href = {};
 
   # Custom handling of typemap, if any
+ TYPEMAP:
   foreach my $key ( keys %{$href} ) {
 
     # skip elements not containing typemap keyword
-    next if ( $key !~ /^(.*):typemap/ );
+    next TYPEMAP if ( $key !~ /^(.*):typemap/ );
 
     my $typemap_db = $1;
+
+    # verify that key is a valid database type
+    if ( !grep( /^$typemap_db$/, $self->{const}->get_rdbms() ) ) {
+      $self->{log}->error( qq{Unsupported typemap '$typemap_db'}
+          . q{. Valid options are }
+          . join( q{, }, $self->{const}->get_rdbms() ) );
+      next TYPEMAP;
+    }
+
     my $typemap_str = $href->{$key};
     $self->{log}->debug(qq{Found typemap for database $typemap_db});
 
@@ -553,13 +568,13 @@ sub _parse_typemap {
       $defDefined[0] =~ s/^\s*(\S+)\s*$/$1/;
       $defDefined[1] =~ s/^\s*(\S+)\s*$/$1/;
 
-			my @typearr = $self->{utils}->split_type($defDefined[1]);
+      my @typearr = $self->{utils}->split_type( $defDefined[1] );
 
       # Set typemap key-value for given db type
       $typemap_href->{$typemap_db}->{ $defDefined[0] } = \@typearr;
     }
   }
-  $self->{log}->debug( q{typemap :} . Dumper( $typemap_href ) );
+  $self->{log}->debug( q{typemap :} . Dumper($typemap_href) );
 
   return $typemap_href;
 }

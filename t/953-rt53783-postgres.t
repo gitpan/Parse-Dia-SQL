@@ -69,7 +69,7 @@ __END__
       'UUID'      => 'uuid',
       'TIMESTAMP' => 'timestamp(3)'
     },
-    'sqlite' => {
+    'sqlite3' => {
       'string'    => 'text',
       'UUID'      => 'text(36)',
       'TIMESTAMP' => 'text(14)'
