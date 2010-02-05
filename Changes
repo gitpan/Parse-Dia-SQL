@@ -1,9 +1,6 @@
 Revision history for Perl module Parse::Dia::SQL.
 
-0.13_02 Mon Feb  1 21:42:51 CET 2010
-    - Fixes in typemap support.
-
-0.13_01 Fri Jan 22 22:42:09 CET 2010
+0.14 Fri Feb  5 20:13:09 CET 2010
     - RT #53782 - Add typemap support (reported by Jani Päijänen).
 
 0.13 Sun Dec 20 13:01:41 CET 2009

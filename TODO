@@ -1,4 +1,7 @@
-  $Id: TODO,v 1.13 2010/01/19 10:09:39 aff Exp $
+  $Id: TODO,v 1.14 2010/02/02 20:15:42 aff Exp $
+
+- Warn if there are typemaps for databases in the model that are not
+  used to generate output.
 
 - Add general support for synonyms (replace hack in 
   Parse::Dia::SQL::Utils::get_base_type).

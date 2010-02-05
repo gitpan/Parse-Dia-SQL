@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.47 2010/02/01 20:45:40 aff Exp $
+# $Id: SQL.pm,v 1.48 2010/02/05 19:30:13 aff Exp $
 
 =pod
 
@@ -43,15 +43,13 @@ See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 
 =item * Index options are supported.  Text is taken from the I<comments> field of the I<operation>, i.e. the index.  A database specific default value is used if the I<comments> field is left blank.  Consult the Output sub class' constructor.
 
-=item * Type mapping is supported as of version 0.13_01. Unlike I<tedia2sql> the type mapping is non-recursive.
+=item * Type mapping is supported. A type mapping is a user-defined column name replacement. Unlike I<tedia2sql> the type mapping is non-recursive.  Consult C<t/data/typemap.dia> for an example. 
 
 =back
 
 =head1 DIA VERSIONS
 
 Parse::Dia::SQL has been tested with Dia versions 0.93 - 0.97.
-
-Dia version 0.97 changed the way associations were stored, and support for this has been added as of Parse::Dia::SQL version 0.11.
 
 Parse::Dia::SQL uses the XML C<version> tag information in the I<.dia> input file to determine how each XML construct is formatted.  Future versions of Dia may change the internal format, and XML C<version> tag is used to detect such changes.
 
@@ -190,7 +188,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.13_02';
+our $VERSION = '0.14';
 
 my $UML_ASSOCIATION  = 'UML - Association';
 my $UML_SMALLPACKAGE = 'UML - SmallPackage';

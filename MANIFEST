@@ -105,9 +105,9 @@ t/data/many_to_many.dia
 t/data/rt50906.dia
 t/data/rt51433.dia
 t/data/rt52755.dia
-t/data/rt53783.dia
 t/data/table.col.comment.dia
 t/data/TestERD.dia
+t/data/typemap.dia
 t/data/version.supported.dia
 t/data/version.unsupported.dia
 TODO

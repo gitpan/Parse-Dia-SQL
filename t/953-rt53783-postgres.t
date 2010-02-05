@@ -1,4 +1,4 @@
-#   $Id: 953-rt53783.t,v 1.4 2010/01/22 21:35:46 aff Exp $
+#   $Id: 953-rt53783-postgres.t,v 1.2 2010/02/05 19:30:13 aff Exp $
 
 use warnings;
 use strict;
@@ -17,7 +17,7 @@ use_ok ('Parse::Dia::SQL::Output');
 use_ok ('Parse::Dia::SQL::Output::Postgres');
 
 my $diasql =
-  Parse::Dia::SQL->new(file => catfile(qw(t data rt53783.dia)), db => 'postgres');
+  Parse::Dia::SQL->new(file => catfile(qw(t data typemap.dia)), db => 'postgres');
 isa_ok($diasql, q{Parse::Dia::SQL}, q{Expect a Parse::Dia::SQL object});
 can_ok($diasql, q{get_sql});
 
