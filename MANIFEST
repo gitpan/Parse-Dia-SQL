@@ -95,6 +95,7 @@ t/951-rt50906.t
 t/952-rt52755.t
 t/953-rt53783-postgres.t
 t/953-rt53783-sqlite3.t
+t/960-rt56357-database-model.t
 t/data/association_dia_0_97.dia
 t/data/db2.pre.dupe.dia
 t/data/implicit_role.dia
@@ -105,6 +106,8 @@ t/data/many_to_many.dia
 t/data/rt50906.dia
 t/data/rt51433.dia
 t/data/rt52755.dia
+t/data/rt53783.dia
+t/data/rt56357.dia
 t/data/table.col.comment.dia
 t/data/TestERD.dia
 t/data/typemap.dia

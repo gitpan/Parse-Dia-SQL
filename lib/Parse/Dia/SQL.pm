@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.48 2010/02/05 19:30:13 aff Exp $
+# $Id: SQL.pm,v 1.49 2010/04/08 19:22:35 aff Exp $
 
 =pod
 
@@ -188,12 +188,13 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.14';
+our $VERSION = '0.14_01';
 
-my $UML_ASSOCIATION  = 'UML - Association';
-my $UML_SMALLPACKAGE = 'UML - SmallPackage';
-my $UML_CLASS        = 'UML - Class';
-my $UML_COMPONENT    = 'UML - Component';
+my $UML_ASSOCIATION     = 'UML - Association';
+my $UML_SMALLPACKAGE    = 'UML - SmallPackage';
+my $UML_CLASS           = 'UML - Class';
+my $UML_COMPONENT       = 'UML - Component';
+my $DATABASE_TABLE      = 'Database - Table';  # UNSUPPORTED !
 
 =head1 METHODS
 
@@ -478,6 +479,13 @@ sub _parse_smallpackages {
         my $nodeAttrId      = $nodelist->item($i)->getAttribute('id');
         my $nodeAttrVersion = $nodelist->item($i)->getAttribute('version');
         $self->{log}->debug("Node $i -- type=$nodeAttrType");
+
+        ########################################################################
+	# REMOVE THE BELOW 3 LINES IF SUPPORT FOR 'Database - Table' IS ADDED
+        if ( $nodeAttrType eq $DATABASE_TABLE ) {
+	    $self->{log}->logdie("Unsupported diagram type '$DATABASE_TABLE'. Use the '$UML_CLASS' instead.");
+	}
+        ########################################################################
 
         if ( $nodeAttrType eq $UML_SMALLPACKAGE ) {
 
