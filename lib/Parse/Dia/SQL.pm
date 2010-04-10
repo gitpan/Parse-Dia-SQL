@@ -1,6 +1,6 @@
 package Parse::Dia::SQL;
 
-# $Id: SQL.pm,v 1.49 2010/04/08 19:22:35 aff Exp $
+# $Id: SQL.pm,v 1.50 2010/04/10 12:58:16 aff Exp $
 
 =pod
 
@@ -43,7 +43,9 @@ See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 
 =item * Index options are supported.  Text is taken from the I<comments> field of the I<operation>, i.e. the index.  A database specific default value is used if the I<comments> field is left blank.  Consult the Output sub class' constructor.
 
-=item * Type mapping is supported. A type mapping is a user-defined column name replacement. Unlike I<tedia2sql> the type mapping is non-recursive.  Consult C<t/data/typemap.dia> for an example. 
+=item * Type mapping is supported. A type mapping is a user-defined column name replacement. Unlike I<tedia2sql> the type mapping is non-recursive.  Consult C<t/data/typemap.dia> for an example.
+
+=item * Preliminary support for Dia's I<database> shapes is added. 
 
 =back
 
@@ -188,13 +190,13 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.14_01';
+our $VERSION = '0.14_02';
 
-my $UML_ASSOCIATION     = 'UML - Association';
-my $UML_SMALLPACKAGE    = 'UML - SmallPackage';
-my $UML_CLASS           = 'UML - Class';
-my $UML_COMPONENT       = 'UML - Component';
-my $DATABASE_TABLE      = 'Database - Table';  # UNSUPPORTED !
+my $UML_ASSOCIATION  = 'UML - Association';
+my $UML_SMALLPACKAGE = 'UML - SmallPackage';
+my $UML_CLASS        = 'UML - Class';
+my $UML_COMPONENT    = 'UML - Component';
+my $DATABASE_TABLE   = 'Database - Table';
 
 =head1 METHODS
 
@@ -231,14 +233,14 @@ sub new {
     const       => undef,
     fk_defs     => [],
     classes     => [],
-    components     => [],                           # insert statements
+    components     => [],                            # insert statements
     small_packages => [],
     typemap        => {},
     output         => undef,
     index_options  => $param{index_options} || [],
-    diaversion  => $param{diaversion} || undef,
-    ignore_type_mismatch  => $param{ignore_type_mismatch} || undef,
-    converted   => 0,
+    diaversion     => $param{diaversion} || undef,
+    ignore_type_mismatch => $param{ignore_type_mismatch} || undef,
+    converted            => 0,
   };
 
   bless($self, $class);
@@ -248,11 +250,11 @@ sub new {
   $self->_init_const();
 
   # Die unless database is supported
-  if ( !grep( /^$self->{db}$/, $self->{const}->get_rdbms() ) ) {
-    $self->{log}->logdie( qq{Unsupported database }
+  if (!grep(/^$self->{db}$/, $self->{const}->get_rdbms())) {
+    $self->{log}->logdie(qq{Unsupported database }
         . $self->{db}
         . q{. Valid options are }
-        . join( q{, },  $self->{const}->get_rdbms() ) );
+        . join(q{, }, $self->{const}->get_rdbms()));
   }
 
   return $self;
@@ -448,7 +450,7 @@ sub _get_nodelists {
 
 # Accessor
 sub get_smallpackages_ref {
-    my $self = shift;
+  my $self = shift;
     return $self->{small_packages};
 }
 
@@ -460,38 +462,31 @@ sub _parse_smallpackages {
 
   $self->{log}->debug("_parse_smallpackages is called");
 
-  if ( !$self->{nodelists} ) {
+  if (!$self->{nodelists}) {
     $self->{log}->warn("nodelists are empty");
     return;
   }
 
-  foreach my $nodelist ( @{ $self->{nodelists} } ) {
+  foreach my $nodelist (@{ $self->{nodelists} }) {
 
-    $self->{log}->debug( "nodelist length" . $nodelist->getLength );
+    $self->{log}->debug("nodelist length" . $nodelist->getLength);
 
   NODE:
-    for ( my $i = 0 ; $i < $nodelist->getLength ; $i++ ) {
+    for (my $i = 0 ; $i < $nodelist->getLength ; $i++) {
       my $nodeType = $nodelist->item($i)->getNodeType;
 
       # sanity check -- a dia:object should be an element_node
-      if ( $nodeType == ELEMENT_NODE ) {
+      if ($nodeType == ELEMENT_NODE) {
         my $nodeAttrType    = $nodelist->item($i)->getAttribute('type');
         my $nodeAttrId      = $nodelist->item($i)->getAttribute('id');
         my $nodeAttrVersion = $nodelist->item($i)->getAttribute('version');
         $self->{log}->debug("Node $i -- type=$nodeAttrType");
 
-        ########################################################################
-	# REMOVE THE BELOW 3 LINES IF SUPPORT FOR 'Database - Table' IS ADDED
-        if ( $nodeAttrType eq $DATABASE_TABLE ) {
-	    $self->{log}->logdie("Unsupported diagram type '$DATABASE_TABLE'. Use the '$UML_CLASS' instead.");
-	}
-        ########################################################################
-
-        if ( $nodeAttrType eq $UML_SMALLPACKAGE ) {
+        if ($nodeAttrType eq $UML_SMALLPACKAGE) {
 
           # Check that version is supported
-          if ( !$self->{utils}
-            ->_check_object_version( $UML_SMALLPACKAGE, $nodeAttrVersion ) )
+          if (!$self->{utils}
+            ->_check_object_version($UML_SMALLPACKAGE, $nodeAttrVersion))
           {
             $self->{log}->error(
 "Found unsupported version '$nodeAttrVersion' of $UML_SMALLPACKAGE"
@@ -502,32 +497,43 @@ sub _parse_smallpackages {
           # generic database statements
           $self->{log}->debug("call _parse_smallpackage");
           my $href =
-            $self->_parse_smallpackage( $nodelist->item($i), $nodeAttrId );
+            $self->_parse_smallpackage($nodelist->item($i), $nodeAttrId);
 
-          $self->{log}->debug( "_parse_smallpackage returned " . Dumper($href) );
+          $self->{log}->debug("_parse_smallpackage returned " . Dumper($href));
           push @{ $self->{small_packages} }, $href;
 
           # Custom handling of typemap, if any
-					$self->{log}->debug("typemap before: " . Dumper($self->{typemap}));
- 					my $typemap = $self->_parse_typemap( $href );
-					foreach my $key ( keys %{$typemap} ) {
-						$self->{typemap}->{$key} = $typemap->{$key};
-					}
-					$self->{log}->debug("typemap after: " . Dumper($self->{typemap}));
+          $self->{log}->debug("typemap before: " . Dumper($self->{typemap}));
+          my $typemap = $self->_parse_typemap($href);
+          foreach my $key (keys %{$typemap}) {
+            $self->{typemap}->{$key} = $typemap->{$key};
+          }
+          $self->{log}->debug("typemap after: " . Dumper($self->{typemap}));
         }
       }
     }
   }
 
   # Return number of small_packages - undef if none
-  if ( defined( $self->{small_packages} )
-    && ref( $self->{small_packages} ) eq 'ARRAY' )
+  if (defined($self->{small_packages})
+    && ref($self->{small_packages}) eq 'ARRAY')
   {
-    return scalar( @{ $self->{small_packages} } );
-  }
-  else {
+    return scalar(@{ $self->{small_packages} });
+  } else {
     return;
   }
+}
+
+# Returns hashref where key is name of Databaseclass and value is its
+# content.
+sub _parse_databaseclass {
+  my $self             = shift;
+  my $databaseclassNode = shift;
+
+  my $nodelist = $databaseclassNode->getElementsByTagName('dia:attribute');
+  $self->{log}->debug( "nodelist: " . Dumper($nodelist) );
+  $self->{log}->debug( "attributes: " . $nodelist->getLength );
+
 }
 
 # Parse _smallpackage hashref and set global hash typemap.
@@ -662,7 +668,6 @@ sub _parse_classes {
             next NODE;
           }
 
-
           # table or view create
           $self->{log}->debug("$nodeAttrId");
           my $class = $self->_parse_class( $nodelist->item($i), [$fid, $nodeAttrId, $nodeAttrVersion] );
@@ -670,10 +675,9 @@ sub _parse_classes {
           push @{$self->{classes}}, $class;
 
           #$self->{log}->debug("get_class:". Dumper($class));
-
         }
         elsif ( $nodeAttrType eq $UML_COMPONENT ) {
-          #$self->{log}->debug("get_component");
+          $self->{log}->debug("get_component");
 
           # Check that version is supported
           if (!$self->{utils}->_check_object_version($UML_COMPONENT, $nodeAttrVersion)) {
@@ -681,10 +685,15 @@ sub _parse_classes {
             next NODE;
           }
 
-
           # insert statements - hash ref where table is key
           my $component = $self->_parse_component ($nodelist->item($i), [$i, $nodeAttrId]);
           push @{$self->{components}}, $component if defined($component);
+        } elsif ( $nodeAttrType eq $DATABASE_TABLE ) {
+          $self->{log}->debug("Found '$DATABASE_TABLE'");
+
+          my $class = $self->_parse_database_table( $nodelist->item($i), [$fid, $nodeAttrId, $nodeAttrVersion] );
+
+          push @{$self->{classes}}, $class;
         }
       }
     }
@@ -756,6 +765,123 @@ sub _parse_component {
     return {name => $comp_name, text => $comp_text};
 }
 
+
+# Parse a DATABASE TABLE.
+#
+# Returns a hash reference.
+sub _parse_database_table {
+  my $self  = shift;
+  my $class = shift;
+  my $id    = shift; # it's a array ref..
+
+  my $warns = 0;
+
+  # get the Class name
+  my $className =
+    $self->{utils}
+    ->get_value_from_object( $class, "dia:attribute", "name", "name", "string",
+    0 );
+
+  # determine if this Class is a Table or View
+  my $classAbstract =
+    $self->{utils}
+    ->get_value_from_object( $class, "dia:attribute", "name", "abstract",
+    "boolean", 0 );
+  my $classComment =
+    $self->{utils}
+    ->get_value_from_object( $class, "dia:attribute", "name", "comment", "string",
+    1 );
+  my $classStereotype =
+    $self->{utils}
+    ->get_value_from_object( $class, "dia:attribute", "name", "stereotype",
+    "string", 0 );
+
+  # Dia lacks view support !
+  my $classType = 'table';
+
+  if ( $self->{log}->is_debug() ) {
+	## no critic (ProhibitNoWarnings)
+    no warnings q{uninitialized};
+    $self->{log}
+      ->debug("Parsing UML Class name      : $className");
+    $self->{log}
+      ->debug("Parsing UML Class abstract  : $classAbstract");
+    $self->{log}
+      ->debug("Parsing UML Class comment   : $classComment");
+    $self->{log}
+      ->debug("Parsing UML Class stereotype: $classStereotype");
+    $self->{log}
+      ->debug("Parsing UML Class type      : $classType");
+  }
+
+  my $classLookup = {
+    name    => $className,    # Class name
+    type    => $classType,    # Class type table/view
+    comment => $classComment, # Class comment
+    attList => [],            # list of attributes
+    atts    => {},            # lookup table of attributes
+    pk      => [],            # list of primary key attributes
+    uindxc  => {},            # lookup of unique index column names
+    uindxn  => {},            # lookup of unique index names
+    ops     => [],            # list of operations
+  };
+
+  # get the Class attributes
+  my $attribNode =
+    $self->{utils}
+    ->get_node_from_object( $class, "dia:attribute", "name", "attributes", 0 );
+
+  # need name, type, value, and visibility for each
+  foreach
+    my $singleAttrib ( $attribNode->getElementsByTagName("dia:composite") )
+  {
+    my $attribName =
+      $self->{utils}
+      ->get_value_from_object( $singleAttrib, "dia:attribute", "name", "name",
+      "string", 0 );
+    my $attribType =
+      $self->{utils}
+      ->get_value_from_object( $singleAttrib, "dia:attribute", "name", "type",
+      "string", 0 );
+
+	# NOTE: There is currently not possible to assign a default value
+	# to a column using the database shape in Dia.
+    my $attribVal = '';
+#       $self->{utils}
+#       ->get_value_from_object( $singleAttrib, "dia:attribute", "name", "value",
+#       "string", 0 );
+    my $attrib_is_primary_key =
+      $self->{utils}
+      ->get_value_from_object( $singleAttrib, "dia:attribute", "name",
+      "primary_key", "boolean", 0 );
+	# Conform to UML Class encoding (true == 2, false == 0)
+	$attrib_is_primary_key = ($attrib_is_primary_key eq 'true') ? 2 : 0;
+	
+    my $attribComment =
+      $self->{utils}
+      ->get_value_from_object( $singleAttrib, "dia:attribute", "name", "comment",
+      "string", 1 );
+    $attribComment =~ s/\n/ /g;
+
+    $self->{log}->debug(
+    "attribute: $attribName - $attribType - $attribVal - $attrib_is_primary_key"
+    );
+    my $att = [
+      $attribName,       $attribType, $attribVal,
+      $attrib_is_primary_key, $attribComment
+    ];
+    push @{ $classLookup->{attList} }, $att;
+
+    # Set up symbol table info in the class lookup
+    $classLookup->{atts}{ $self->{utils}->name_case($attribName) } = $att;
+    push @{ $classLookup->{pk} }, $att
+      if ( $attrib_is_primary_key );
+  }
+
+  $self->{log}->debug( "returning " . Dumper($classLookup) );
+  return $classLookup;
+}
+
 # Parse a CLASS and salt away the information needed to generate its SQL
 # DDL.
 #
@@ -795,7 +921,7 @@ sub _parse_class {
   }
 
   if ( $self->{log}->is_debug() ) {
-        ## no critic (ProhibitNoWarnings)
+	## no critic (ProhibitNoWarnings)
     no warnings q{uninitialized};
     $self->{log}
       ->debug("Parsing UML Class name      : $className");
@@ -839,7 +965,6 @@ sub _parse_class {
   # what their endpoints are connected to and to find its
   # key(s)
   my $classLookup = {
-    #    class   => $class,        # reference to class DOM
     name    => $className,    # Class name
     type    => $classType,    # Class type table/view
     comment => $classComment, # Class comment

@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Logger;
 
-# $Id: Logger.pm,v 1.6 2009/03/13 14:17:23 aff Exp $
+# $Id: Logger.pm,v 1.7 2010/04/10 12:58:16 aff Exp $
 
 =pod
 
@@ -72,7 +72,7 @@ sub _init_log {
 #    log4perl.category.Parse::Dia::SQL        = DEBUG, screen-main
     log4perl.category.Parse::Dia::SQL        = INFO, screen-main
     log4perl.appender.screen-main         = Log::Log4perl::Appender::Screen
-    log4perl.appender.screen-main.stderr  = 1
+    log4perl.appender.screen-main.stderr  = 0
     log4perl.appender.screen-main.layout  = PatternLayout
     log4perl.appender.screen-main.layout.ConversionPattern=[%p] %m%n 
 

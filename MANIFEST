@@ -34,6 +34,8 @@ t/207-parse-classes-uindxn.t
 t/208-parse-classes-ops.t
 t/210-check-versions.t
 t/211-parse-versions.t
+t/220-parse-classes-database.t
+t/225-parse-classes-pk.t
 t/300-parse-classes-many-to-many.t
 t/400-parse-typemap.t
 t/500-get-associations.t
