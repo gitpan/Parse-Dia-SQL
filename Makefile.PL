@@ -1,5 +1,5 @@
 
-# $Id: Makefile.PL,v 1.4 2009/04/14 06:32:24 aff Exp $
+# $Id: Makefile.PL,v 1.5 2010/04/15 20:41:00 aff Exp $
 
 use strict;
 use warnings;
@@ -33,7 +33,6 @@ my %args = (
     'File::Find'                => 0,
     'Getopt::Long'              => 0,
     'IO::Uncompress::Gunzip'    => 0,
-    'Log::Dispatch::FileRotate' => 0,
     'Log::Log4perl'             => 0,
     'POSIX'                     => 0,
     'Test::Exception'           => 0,

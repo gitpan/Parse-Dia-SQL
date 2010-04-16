@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.30 2010/02/01 20:45:40 aff Exp $
+# $Id: Output.pm,v 1.31 2010/04/16 05:13:08 aff Exp $
 
 =pod
 
@@ -383,7 +383,7 @@ sub _check_components {
     $self->{log}->warn(q{components is not an ARRAY ref});
     return;
   } elsif (scalar(@{ $self->{components} } == 0)) {
-    $self->{log}->warn(q{components is an empty ARRAY ref});
+    $self->{log}->info(q{components is an empty ARRAY ref});
     return;
   }
 
@@ -421,7 +421,7 @@ sub _check_classes {
     $self->{log}->warn(q{classes is not an ARRAY ref});
     return;
   } elsif (scalar(@{ $self->{classes} } == 0)) {
-    $self->{log}->warn(q{classes is an empty ARRAY ref});
+    $self->{log}->info(q{classes is an empty ARRAY ref});
     return;
   }
 
@@ -451,7 +451,7 @@ sub _check_associations {
     $self->{log}->warn(q{associations is not an ARRAY ref});
     return;
   } elsif (scalar(@{ $self->{associations} } == 0)) {
-    $self->{log}->warn(q{associations is an empty ARRAY ref});
+    $self->{log}->info(q{associations is an empty ARRAY ref});
     return;
   }
 

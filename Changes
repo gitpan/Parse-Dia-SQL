@@ -1,8 +1,10 @@
 Revision history for Perl module Parse::Dia::SQL.
 
-0.14_01 Thu, 08 Apr 2010 19:31:55 GMT
-    - RT #56357 - Detect and refuse Dia database shapes with a 
-      meaningful error messsage (John-Paul Drawneek).
+0.15 Thu Apr 15 22:32:41 CEST 2010
+    - RT #56357 - Detect Dia database shapes and added 
+      experimental parsing (excluding associations) 
+      (reported by John-Paul Drawneek).
+    - Added LICENSE to conform with debian standards.
 
 0.14 Fri Feb  5 20:13:09 CET 2010
     - RT #53782 - Add typemap support (reported by Jani Päijänen).

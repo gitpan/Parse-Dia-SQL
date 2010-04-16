@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Logger;
 
-# $Id: Logger.pm,v 1.7 2010/04/10 12:58:16 aff Exp $
+# $Id: Logger.pm,v 1.8 2010/04/15 20:41:00 aff Exp $
 
 =pod
 
@@ -34,7 +34,6 @@ use warnings;
 use strict;
 
 use Log::Log4perl;
-use Log::Dispatch::FileRotate;
 
 use constant APPENDER_THRESHOLDS_ADJUST_LOGOFF =>  7;
 use constant APPENDER_THRESHOLDS_ADJUST_LOGON  => -7;
@@ -66,24 +65,12 @@ sub _init_log {
   # Init logging
   my $conf = q(
     # Main logger for Parse::Dia::SQL
-#    log4perl.category.Parse::Dia::SQL        = INFO, file, screen-main
-#    log4perl.category.Parse::Dia::SQL        = DEBUG, file, screen-main
-#    log4perl.category.Parse::Dia::SQL        = WARN, screen-main
 #    log4perl.category.Parse::Dia::SQL        = DEBUG, screen-main
     log4perl.category.Parse::Dia::SQL        = INFO, screen-main
     log4perl.appender.screen-main         = Log::Log4perl::Appender::Screen
     log4perl.appender.screen-main.stderr  = 0
     log4perl.appender.screen-main.layout  = PatternLayout
     log4perl.appender.screen-main.layout.ConversionPattern=[%p] %m%n 
-
-    log4perl.appender.file           = Log::Dispatch::FileRotate
-    log4perl.appender.file.filename  = dia-sql.log
-    log4perl.appender.file.mode      = append
-    log4perl.appender.file.size      = 100000
-    log4perl.appender.file.max       = 5
-    log4perl.appender.file.layout    = PatternLayout
-    log4perl.appender.file.layout.ConversionPattern=[%p] %d %F:%L: %m%n
-
 
     # Separate logger for Output::*
 #    log4perl.category.Parse::Dia::SQL::Output  = DEBUG, screen-output
