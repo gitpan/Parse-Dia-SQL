@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.31 2010/04/16 05:13:08 aff Exp $
+# $Id: Output.pm,v 1.32 2010/05/21 05:19:36 aff Exp $
 
 =pod
 
@@ -31,6 +31,7 @@ each RDBMS.
 
 use warnings;
 use strict;
+use open qw/:std :utf8/;
 
 use Text::Table;
 use Data::Dumper;

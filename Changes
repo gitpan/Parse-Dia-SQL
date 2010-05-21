@@ -1,5 +1,10 @@
 Revision history for Perl module Parse::Dia::SQL.
 
+0.16 Fri May 21 07:20:43 CEST 2010
+    - RT #57182 Encoding for insert statements in UML components 
+      (reported by Gaudenz Steinlin).
+    - Final preparations for debian release.
+
 0.15 Thu Apr 15 22:32:41 CEST 2010
     - RT #56357 - Detect Dia database shapes and added 
       experimental parsing (excluding associations) 

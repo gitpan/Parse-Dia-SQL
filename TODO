@@ -1,14 +1,17 @@
-  $Id: TODO,v 1.14 2010/02/02 20:15:42 aff Exp $
+
+  $Id: TODO,v 1.15 2010/05/04 06:13:28 aff Exp $
+
+- Implement support for Dia's new Database shape.
 
 - Warn if there are typemaps for databases in the model that are not
   used to generate output.
 
-- Add general support for synonyms (replace hack in 
+- Add general support for synonyms (replace hack in
   Parse::Dia::SQL::Utils::get_base_type).
 
 - Support index options on individual indices.
 
-- Add test for missing FK (formerly fkNamesFromAttList) 
+- Add test for missing FK (formerly fkNamesFromAttList)
 
 - Add support for loading statements from external files.
 
@@ -16,7 +19,7 @@
 
 - Warn attempts to create index on non-existent columns
 
-- Add option tablespace to create statements. 
+- Add option tablespace to create statements.
 
 - Add $VERSION to all modules.
 
@@ -28,8 +31,8 @@
   - verify create table,view,index,constraint syntax
   - verify drop table,view,index,constraint syntax
 
-- Parse::Dia::SQL::Output::MySQL 
-	- sub _get_create_table_sql must handle AUTO_INCREMENT
+- Parse::Dia::SQL::Output::MySQL
+    - sub _get_create_table_sql must handle AUTO_INCREMENT
 
 - Download DDL's from http://tedia2sql.tigris.org/ and
   ensure Parse::Dia::SQL produces roughly the same code.

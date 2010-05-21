@@ -37,3 +37,6 @@
 
 # Avoid Devel::Cover files.
 \bcover_db\b
+
+# Skip debian directory
+\bdebian\b
