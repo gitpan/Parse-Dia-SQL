@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Utils;
 
-# $Id: Utils.pm,v 1.11 2010/01/22 19:07:18 aff Exp $
+# $Id: Utils.pm,v 1.12 2010/05/27 09:22:38 aff Exp $
 
 =pod
 
@@ -538,7 +538,7 @@ sub get_base_type {
   if ( $db eq 'postgres' ) {
 
     # handle PostgreSQL database type
-    if ( lc($typeName) eq 'serial' or lc($typeName) eq 'int4' ) {
+    if ( lc($typeName) eq 'serial' or lc($typeName) eq 'int4' or lc($typeName) eq 'int') {
 			$self->{log}->info(qq{Replaced $typeName with integer}) if $self->{log}->is_info();
       return 'integer';
     }
