@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Utils;
 
-# $Id: Utils.pm,v 1.12 2010/05/27 09:22:38 aff Exp $
+# $Id: Utils.pm,v 1.13 2011/02/16 10:23:11 aff Exp $
 
 =pod
 
@@ -89,12 +89,13 @@ sub new {
     log        => undef,
     db         => $param{db} || undef,
     default_pk => $param{default_pk} || undef,
+    loglevel   => $param{loglevel} || undef,
   };
 
   bless($self, $class);
 
   # init logger
-  my $logger = Parse::Dia::SQL::Logger::->new();
+  my $logger = Parse::Dia::SQL::Logger::->new(loglevel => $self->{loglevel});
   $self->{log} = $logger->get_logger(__PACKAGE__);
 
   return $self;

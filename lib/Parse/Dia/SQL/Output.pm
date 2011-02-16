@@ -1,6 +1,6 @@
 package Parse::Dia::SQL::Output;
 
-# $Id: Output.pm,v 1.32 2010/05/21 05:19:36 aff Exp $
+# $Id: Output.pm,v 1.33 2011/02/16 10:23:11 aff Exp $
 
 =pod
 
@@ -86,6 +86,7 @@ sub new {
     components     => $param{components}     || [],    # insert statements
     small_packages => $param{small_packages} || [],
     typemap        => $param{typemap}        || {},    # custom type mapping 
+    loglevel       => $param{loglevel} || undef,
 
     # references to components
     log   => undef,
@@ -96,7 +97,7 @@ sub new {
 
   $self->_init_log();
   $self->_init_const();
-  $self->_init_utils();
+  $self->_init_utils(loglevel => $param{loglevel});
 
   return $self;
 }
@@ -106,8 +107,7 @@ sub new {
 # Initialize logger
 sub _init_log {
   my $self = shift;
-
-  my $logger = Parse::Dia::SQL::Logger::->new();
+  my $logger = Parse::Dia::SQL::Logger::->new(loglevel => $self->{loglevel});
   $self->{log} = $logger->get_logger(__PACKAGE__);
   return 1;
 }
@@ -122,7 +122,10 @@ sub _init_const {
 # Initialize Parse::Dia::SQL::Utils class.
 sub _init_utils {
   my $self = shift;
-  $self->{utils} = Parse::Dia::SQL::Utils::->new(db => $self->{db});
+  $self->{utils} = Parse::Dia::SQL::Utils::->new(
+      db       => $self->{db},
+      loglevel => $self->{loglevel},
+  );
   return 1;
 }
 
