@@ -51,6 +51,8 @@ See L<http://tedia2sql.tigris.org/usingtedia2sql.html>
 means per-table options (e.g. partitioning options) are supported on a
 per-database level.
 
+=item * I<backticks> notation is supported for MySQL-InnoDB.
+
 =back
 
 =head1 DIA VERSIONS
@@ -194,7 +196,7 @@ use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 use Parse::Dia::SQL::Output::SQLite3;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 my $UML_ASSOCIATION  = 'UML - Association';
 my $UML_SMALLPACKAGE = 'UML - SmallPackage';
@@ -246,6 +248,7 @@ sub new {
     ignore_type_mismatch => $param{ignore_type_mismatch} || undef,
     converted            => 0,
     loglevel    => $param{loglevel} || undef,
+    backticks   => $param{backticks} || undef,      # MySQL-InnoDB only
   };
 
   bless($self, $class);
@@ -321,7 +324,7 @@ sub get_output_instance {
   # Add some args to param unless they are set by caller
   %param =
     map { $param{$_} = $self->{$_} unless exists($param{$_}); $_ => $param{$_} }
-      qw(classes associations small_packages components files index_options typemap loglevel);
+      qw(classes associations small_packages components files index_options typemap loglevel backticks);
 
   if ($self->{db} eq q{db2}) {
   return Parse::Dia::SQL::Output::DB2->new(%param);

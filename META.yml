@@ -51,4 +51,4 @@ requires:
   XML::DOM: 0
 resources:
   repository: http://tedia2sql.tigris.org/source/browse/tedia2sql/
-version: 0.18
+version: 0.19
