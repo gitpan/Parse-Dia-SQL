@@ -200,7 +200,7 @@ use Parse::Dia::SQL::Output::SQLite3fk;
 use Parse::Dia::SQL::Output::Sas;
 use Parse::Dia::SQL::Output::Sybase;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 my $UML_ASSOCIATION  = 'UML - Association';
 my $UML_SMALLPACKAGE = 'UML - SmallPackage';
@@ -1262,10 +1262,10 @@ sub _parse_association {
         $leftEnd{role} = $self->{utils}->get_string_from_node($currentNode);
       } elsif ( $nodeAttrName eq 'role_b' ) {
         $rightEnd{role} = $self->{utils}->get_string_from_node($currentNode);
-      } elsif ( $nodeAttrName eq 'aggregate_a' ) {
-        $leftEnd{aggregate} = $self->{utils}->get_string_from_node($currentNode);
-      } elsif ( $nodeAttrName eq 'aggregate_b' ) {
-        $rightEnd{aggregate} = $self->{utils}->get_string_from_node($currentNode);
+      } elsif ( $self->{uml} && $nodeAttrName eq 'assoc_type' && $assocDirection == 2 ) {
+        $leftEnd{aggregate} = $self->{utils}->get_num_from_node($currentNode);
+      } elsif ( $self->{uml} && $nodeAttrName eq 'assoc_type' ) {
+        $rightEnd{aggregate} = $self->{utils}->get_num_from_node($currentNode);
       } elsif ( $nodeAttrName eq 'class_scope_a' ) {
         $leftEnd{class_scope} = $self->{utils}->get_string_from_node($currentNode);
       } elsif ( $nodeAttrName eq 'class_scope_b' ) {
